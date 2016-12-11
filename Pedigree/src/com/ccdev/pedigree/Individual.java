@@ -29,19 +29,30 @@ package com.ccdev.pedigree;
  *
  * @author ccheng
  */
-public class Pedigree {
+public class Individual {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        FamilyTreeBuilder ftb = new FamilyTreeBuilder(1);
-        if(ftb.processInput("cheng.txt")) {
-            System.out.println("Well Done");
-        } else {
-            System.out.println("Failed");
-            System.out.println(ftb.getError());
-        }
+    public Individual(String name) {
+        this.name = name;
     }
     
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    private Individual father;
+
+    public Individual getFather() {
+        return father;
+    }
+
+    public void setFather(Individual father) {
+        this.father = father;
+    }
+
 }

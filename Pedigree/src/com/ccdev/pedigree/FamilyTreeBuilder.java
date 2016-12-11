@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2016, ccheng
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.ccdev.pedigree;
 
 import java.util.ArrayList;
@@ -19,6 +44,10 @@ public class FamilyTreeBuilder {
       return this.errMsg.toString();
     }
     
+    private int startGen = 1;
+    private List<List<String>> generationMembers = new ArrayList<>();   // members in one generation
+    private List<List<List<String>>> allGenerationMembers = new ArrayList<>();   // one generation per entry
+    
     static final int ERROR_LINE_SHORT = 11;
     static final int ERROR_LINE_OVER = 12;
     static final int ERROR_GENERATION_FORMAT = 101;
@@ -27,6 +56,8 @@ public class FamilyTreeBuilder {
     
     static final int ERROR_CHILDREN_SHORT = 201;
     static final int ERROR_CHILDREN_OVER = 202;
+
+    static final int ERROR_EMPTY_LIST = 501;
 
     private void setError(int errorCode) {
         this.setError(errorCode, null);
@@ -93,6 +124,10 @@ public class FamilyTreeBuilder {
             return false;
         }
         
+        if(!this.buildFamilyTree()){
+            return false;
+        }
+        
         return true;
     }
     
@@ -115,7 +150,8 @@ public class FamilyTreeBuilder {
         }
 
         int curGen = generation(gen);
-        
+        this.startGen = curGen;
+
         String s;
         int x = 1;
         int nextGen = 0;
@@ -129,6 +165,8 @@ public class FamilyTreeBuilder {
                     setError(ERROR_GENERATION_INVALID, ": " + s + this.lineIndex(x));
                     return false;
                 }
+                this.allGenerationMembers.add(this.generationMembers);
+                this.generationMembers = new ArrayList<>();
                 curGen = nextGen;
                 break;
             }
@@ -162,6 +200,8 @@ public class FamilyTreeBuilder {
                 this.setError(ERROR_CHILDREN_OVER, ": -" + curGen + "-");
                 return false;
             }
+
+            this.allGenerationMembers.add(this.generationMembers);
             
             if(x >= totalLine) break;   // finished
             
@@ -169,6 +209,7 @@ public class FamilyTreeBuilder {
                 setError(ERROR_GENERATION_INVALID, ": " + s + lineIndex(x+1));
                 return false;
             }
+            this.generationMembers = new ArrayList<>();
             curGen = nextGen;
             pNum = cNum;
         }
@@ -186,9 +227,58 @@ public class FamilyTreeBuilder {
     }
     
     private int siblingNumber(String s) {
-        if(s.matches("-+")) return 0;
+        if(s.isEmpty() || s.matches("-+")) {
+            this.generationMembers.add(null);
+            return 0;
+        }
         String[] ss = s.split("([,，]\\s*)|(\\s+)");
 //        System.out.println("siblings: " + ss.length);
-        return ss.length;
+        List<String> names = new ArrayList<>();
+        for(String name : ss) {
+            if(name.isEmpty()) continue;
+            names.add(name);
+        }
+        if(names.isEmpty()) {
+            this.generationMembers.add(null);
+            return 0;
+        }
+        this.generationMembers.add(names);
+        return names.size();
+    }
+
+    private List<Individual> indList = new ArrayList<>();
+    private boolean buildFamilyTree() {
+        if(this.allGenerationMembers.isEmpty()) {
+            this.setError(ERROR_EMPTY_LIST);
+            return false;
+        }
+
+        List<Individual> tmpList = new ArrayList<>();
+        List<List<String>> genMembers = this.allGenerationMembers.get(0);
+        for(List<String> mm : genMembers) {
+            for(String name : mm) {
+                Individual ind = new Individual(name);
+                tmpList.add(ind);
+                this.indList.add(ind);
+            }
+        }
+        
+        for(int x=1, total=this.allGenerationMembers.size(); x<total; x++) {
+            genMembers = this.allGenerationMembers.get(x);
+            for(List<String> mm : genMembers) {
+                if(mm == null) {
+                    tmpList.remove(0);
+                    continue;
+                }
+                for(String name : mm) {
+                    Individual ind = new Individual(name);
+                    ind.setFather(tmpList.get(0));
+                    tmpList.add(ind);
+                    this.indList.add(ind);
+                }
+                tmpList.remove(0);
+            }
+        }
+        return true;
     }
 }
