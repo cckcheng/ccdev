@@ -83,7 +83,7 @@ public class FamilyTreeBuilder {
         lines.add("-");
         lines.add("d1,d2");
         lines.add("d3");
-        lines.add("-5-");
+        lines.add("-3-");
         lines.add("-");
         lines.add("d3");
         lines.add("d3");
@@ -166,13 +166,23 @@ public class FamilyTreeBuilder {
             if(x >= totalLine) break;   // finished
             
             if(nextGen != curGen + 1) {
-                setError(ERROR_GENERATION_INVALID, ": " + s);
+                setError(ERROR_GENERATION_INVALID, ": " + s + lineIndex(x+1));
                 return false;
             }
             curGen = nextGen;
             pNum = cNum;
         }
         return true;
+    }
+    
+    private String lineIndex(int idx) {
+        switch( this.langCode) {
+            case 1:
+            default:
+                return "(Line: " + idx + ")";
+            case 2:
+                return "(行号:" + idx + ")";
+        }
     }
     
     private int siblingNumber(String s) {
