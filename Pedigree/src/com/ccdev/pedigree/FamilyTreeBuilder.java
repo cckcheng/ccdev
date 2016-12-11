@@ -83,6 +83,10 @@ public class FamilyTreeBuilder {
         lines.add("-");
         lines.add("d1,d2");
         lines.add("d3");
+        lines.add("-5-");
+        lines.add("-");
+        lines.add("d3");
+        lines.add("d3");
         
         if(!this.validateInput(lines)){
             return false;
@@ -138,6 +142,7 @@ public class FamilyTreeBuilder {
         
         while(++x < totalLine) {
             cNum = 0;
+            cLine = 0;
             do {
                 s = lines.get(x);
                 if(s.matches(ptnGen)) {
@@ -153,10 +158,12 @@ public class FamilyTreeBuilder {
                 this.setError(ERROR_CHILDREN_SHORT, ": -" + curGen + "-");
                 return false;
             }
-            if(cLine < pNum) {
+            if(cLine > pNum) {
                 this.setError(ERROR_CHILDREN_OVER, ": -" + curGen + "-");
                 return false;
             }
+            
+            if(x >= totalLine) break;   // finished
             
             if(nextGen != curGen + 1) {
                 setError(ERROR_GENERATION_INVALID, ": " + s);
@@ -169,6 +176,7 @@ public class FamilyTreeBuilder {
     }
     
     private int siblingNumber(String s) {
+        if(s.equals("-")) return 0;
         String[] ss = s.split("([,，]\\s*)|(\\s+)");
 //        System.out.println("siblings: " + ss.length);
         return ss.length;
