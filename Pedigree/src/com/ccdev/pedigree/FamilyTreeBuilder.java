@@ -80,13 +80,14 @@ public class FamilyTreeBuilder {
         lines.add("c1");
         lines.add("c2,c3");
         lines.add("-4-");
-        lines.add("-");
+        lines.add("--");
         lines.add("d1,d2");
         lines.add("d3");
-        lines.add("-3-");
+        lines.add("-5-");
+        lines.add("--");
+        lines.add("e1");
         lines.add("-");
-        lines.add("d3");
-        lines.add("d3");
+        lines.add("-6-");
         
         if(!this.validateInput(lines)){
             return false;
@@ -99,6 +100,7 @@ public class FamilyTreeBuilder {
         return Integer.parseInt(s.substring(1, s.length() - 1));
     }
     
+    static final String PATTERN_GENERATION = "-[0-9]+-";
     private boolean validateInput(List<String> lines) {
         int totalLine = lines.size();
         if(totalLine < 2) {
@@ -106,27 +108,25 @@ public class FamilyTreeBuilder {
             return false;
         }
 
-        String ptnGen = "-[0-9]+-";
         String gen = lines.get(0);
-        if(!gen.matches(ptnGen)){
+        if(!gen.matches(PATTERN_GENERATION)){
             setError(ERROR_GENERATION_FORMAT, ": " + gen);
             return false;
         }
-        int pNum = 0;
-        int cNum = 0;
-        int cLine = 0;
-        
+
         int curGen = generation(gen);
-        int x = 1;
+        
         String s;
+        int x = 1;
         int nextGen = 0;
+        int pNum = 0;
         // parse first generation
         do {
             s = lines.get(x);
-            if(s.matches(ptnGen)) {
+            if(s.matches(PATTERN_GENERATION)) {
                 nextGen = generation(s);
                 if(nextGen != curGen + 1) {
-                    setError(ERROR_GENERATION_INVALID, ": " + s);
+                    setError(ERROR_GENERATION_INVALID, ": " + s + this.lineIndex(x));
                     return false;
                 }
                 curGen = nextGen;
@@ -141,11 +141,11 @@ public class FamilyTreeBuilder {
         } while(++x < totalLine);
         
         while(++x < totalLine) {
-            cNum = 0;
-            cLine = 0;
+            int cNum = 0;
+            int cLine = 0;
             do {
                 s = lines.get(x);
-                if(s.matches(ptnGen)) {
+                if(s.matches(PATTERN_GENERATION)) {
                     nextGen = this.generation(s);
                     break;
                 }
@@ -186,7 +186,7 @@ public class FamilyTreeBuilder {
     }
     
     private int siblingNumber(String s) {
-        if(s.equals("-")) return 0;
+        if(s.matches("-+")) return 0;
         String[] ss = s.split("([,，]\\s*)|(\\s+)");
 //        System.out.println("siblings: " + ss.length);
         return ss.length;
