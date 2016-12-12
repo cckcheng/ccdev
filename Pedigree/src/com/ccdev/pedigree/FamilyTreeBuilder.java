@@ -25,8 +25,22 @@
  */
 package com.ccdev.pedigree;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +48,7 @@ import java.util.List;
  */
 public class FamilyTreeBuilder {
     private int langCode = 1;   // 1-english, 2- chinese
+    private String CONFIG_FILE = "famtree.conf";
 
     public FamilyTreeBuilder(int langCode) {
         this.langCode = langCode;
@@ -48,8 +63,16 @@ public class FamilyTreeBuilder {
     private List<List<String>> generationMembers = new ArrayList<>();   // members in one generation
     private List<List<List<String>>> allGenerationMembers = new ArrayList<>();   // one generation per entry
     
+    static final long MAX_INFILE_LENGTH = 1048576L;     // 1M
+    
+    static final int ERROR_FILE_LENGTH_OVERLIMIT = 1;
+    static final int ERROR_FILE_NOT_FOUND = 2;
+    static final int ERROR_IO_EXCEPTION = 3;
+    static final int ERROR_SQL_EXCEPTION = 5;
+
     static final int ERROR_LINE_SHORT = 11;
     static final int ERROR_LINE_OVER = 12;
+
     static final int ERROR_GENERATION_FORMAT = 101;
     static final int ERROR_GENERATION_INVALID = 102;
     static final int ERROR_FIRST_GERERATION = 111;
@@ -69,6 +92,19 @@ public class FamilyTreeBuilder {
             case 1:// English
                 msg = "Unknown";
                 switch(errorCode) {
+                    case ERROR_FILE_LENGTH_OVERLIMIT:
+                        msg = "File Length Over Limit: Max. " + MAX_INFILE_LENGTH;
+                        break;
+                    case ERROR_FILE_NOT_FOUND:
+                        msg = "File Not Found";
+                        break;
+                    case ERROR_IO_EXCEPTION:
+                        msg = "IO Exception";
+                        break;
+                    case ERROR_SQL_EXCEPTION:
+                        msg = "SQL Exception";
+                        break;
+
                     case ERROR_GENERATION_FORMAT:
                         msg = "Wrong Generation Format, should be -ddd-";
                         break;
@@ -102,23 +138,37 @@ public class FamilyTreeBuilder {
     }
 
     public boolean processInput(String fileName) {
-        List<String> lines = new ArrayList<String>();
-        lines.add("-1-");
-        lines.add("a1");
-        lines.add("-2-");
-        lines.add("b1,b2");
-        lines.add("-3-");
-        lines.add("c1");
-        lines.add("c2,c3");
-        lines.add("-4-");
-        lines.add("--");
-        lines.add("d1,d2");
-        lines.add("d3");
-        lines.add("-5-");
-        lines.add("--");
-        lines.add("e1");
-        lines.add("-");
-        lines.add("-6-");
+        // the input file has to be saved as UTF-8, default is ANSI for Notepad
+        File inFile = new File(fileName);
+        if(!inFile.exists()) {
+            this.setError(ERROR_FILE_NOT_FOUND, ": " + fileName);
+            return false;
+        }
+
+        if(inFile.length() > MAX_INFILE_LENGTH) {
+            this.setError(ERROR_FILE_LENGTH_OVERLIMIT);
+            return false;
+        }
+
+        BufferedReader br;
+        List<String> lines;
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), Charset.forName("UTF-8")));
+            if(br.read() != 0xFEFF) {
+                br.reset();
+            }
+            lines = new ArrayList<String>();
+            String s;
+            while((s = br.readLine()) != null) {
+                lines.add(s.trim());
+            }
+        } catch (FileNotFoundException ex) {
+            this.setError(ERROR_FILE_NOT_FOUND, ": " + fileName);
+            return false;
+        } catch (IOException ex) {
+            this.setError(ERROR_IO_EXCEPTION, ": " + fileName);
+            return false;
+        }
         
         if(!this.validateInput(lines)){
             return false;
@@ -127,7 +177,7 @@ public class FamilyTreeBuilder {
         if(!this.buildFamilyTree()){
             return false;
         }
-        
+  
         return true;
     }
     
@@ -137,25 +187,34 @@ public class FamilyTreeBuilder {
     
     static final String PATTERN_GENERATION = "-[0-9]+-";
     private boolean validateInput(List<String> lines) {
+        while(!lines.isEmpty() && lines.get(0).isEmpty()) lines.remove(0);  // remove empty line(s) in the beggining
+
+        String s;
+        for(int x=lines.size() - 1; x>=0; x--) {
+            s = lines.get(x);
+            if(!s.isEmpty()) break;
+            lines.remove(x);    // remove tail empty line(s)
+        }
+
         int totalLine = lines.size();
         if(totalLine < 2) {
             setError(ERROR_LINE_SHORT);
             return false;
         }
 
-        String gen = lines.get(0);
-        if(!gen.matches(PATTERN_GENERATION)){
-            setError(ERROR_GENERATION_FORMAT, ": " + gen);
+//        for(String a : lines) System.out.println(a);
+        
+        s = lines.get(0);
+        if(!s.matches(PATTERN_GENERATION)){
+            setError(ERROR_GENERATION_FORMAT, ": " + s);
             return false;
         }
 
-        int curGen = generation(gen);
-        this.startGen = curGen;
-
-        String s;
-        int x = 1;
+        int curGen = this.startGen = generation(s);
         int nextGen = 0;
         int pNum = 0;
+
+        int x = 1;
         // parse first generation
         do {
             s = lines.get(x);
@@ -178,6 +237,7 @@ public class FamilyTreeBuilder {
             pNum++;
         } while(++x < totalLine);
         
+        // parse the rest generations
         while(++x < totalLine) {
             int cNum = 0;
             int cLine = 0;
@@ -253,35 +313,64 @@ public class FamilyTreeBuilder {
             return false;
         }
 
-        List<Individual> tmpList = new ArrayList<>();
-        List<List<String>> genMembers = this.allGenerationMembers.get(0);
-        for(List<String> mm : genMembers) {
-            for(String name : mm) {
-                Individual ind = new Individual(name);
-                tmpList.add(ind);
-                this.indList.add(ind);
-            }
+        Common c = new Common();
+        Properties conf = c.loadConfigFile(CONFIG_FILE);
+        if(c.hasError()) {
+            this.setError(c.getError());
+            return false;
         }
-        
-        for(int x=1, total=this.allGenerationMembers.size(); x<total; x++) {
-            genMembers = this.allGenerationMembers.get(x);
+
+        Connection conn = c.getMysqlConnection(conf);
+        if(c.hasError()) {
+            this.setError(c.getError());
+            return false;
+        }
+
+        Statement st = null;
+        try {
+            st = conn.createStatement();
+
+            List<Individual> tmpList = new ArrayList<>();
+            List<List<String>> genMembers = this.allGenerationMembers.get(0);
             for(List<String> mm : genMembers) {
-                Individual father = tmpList.get(0);
-                if(mm == null) {
-                    father.setLeaf(true);
-                    tmpList.remove(0);
-                    continue;
-                }
                 for(String name : mm) {
                     Individual ind = new Individual(name);
-                    ind.setFather(father);
-                    father.addChild(ind);
                     tmpList.add(ind);
                     this.indList.add(ind);
                 }
-                tmpList.remove(0);
+            }
+
+            for(int x=1, total=this.allGenerationMembers.size(); x<total; x++) {
+                genMembers = this.allGenerationMembers.get(x);
+                for(List<String> mm : genMembers) {
+                    Individual father = tmpList.get(0);
+                    if(mm == null) {
+                        father.setLeaf(true);
+                        tmpList.remove(0);
+                        continue;
+                    }
+                    for(String name : mm) {
+                        Individual ind = new Individual(name);
+                        ind.setFather(father);
+                        father.addChild(ind);
+                        tmpList.add(ind);
+                        this.indList.add(ind);
+                    }
+                    tmpList.remove(0);
+                }
+            }
+        
+        } catch (SQLException ex) {
+            this.setError(ERROR_SQL_EXCEPTION);
+            return false;
+        } finally {      
+            try {
+                if(st != null) st.close();
+                if(conn != null) conn.close();
+            } catch (SQLException ex) {
             }
         }
+
         return true;
     }
 
