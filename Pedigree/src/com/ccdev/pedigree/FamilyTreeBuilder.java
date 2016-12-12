@@ -266,13 +266,16 @@ public class FamilyTreeBuilder {
         for(int x=1, total=this.allGenerationMembers.size(); x<total; x++) {
             genMembers = this.allGenerationMembers.get(x);
             for(List<String> mm : genMembers) {
+                Individual father = tmpList.get(0);
                 if(mm == null) {
+                    father.setLeaf(true);
                     tmpList.remove(0);
                     continue;
                 }
                 for(String name : mm) {
                     Individual ind = new Individual(name);
-                    ind.setFather(tmpList.get(0));
+                    ind.setFather(father);
+                    father.addChild(ind);
                     tmpList.add(ind);
                     this.indList.add(ind);
                 }
@@ -280,5 +283,31 @@ public class FamilyTreeBuilder {
             }
         }
         return true;
+    }
+
+    public void printAll() {
+        printNode(this.indList.get(0));
+    }
+    
+    private void printNode(Individual node) {
+        if(node == null) return;
+        
+        System.out.println(node.getName());
+        if(node.isLeaf() || node.getChildren().isEmpty()) {
+            printSibling(node);
+        } else {
+            printNode(node.getChildren().get(0));
+        }
+    }
+    
+    private void printSibling(Individual node) {
+        if(node == null) return;
+        
+        Individual sibling = node.getNextSibling();
+        if(sibling != null) {
+            printNode(sibling); 
+        } else {
+            printSibling(node.getFather()); 
+        }
     }
 }

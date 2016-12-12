@@ -37,6 +37,7 @@ public class Pedigree {
     public static void main(String[] args) {
         FamilyTreeBuilder ftb = new FamilyTreeBuilder(1);
         if(ftb.processInput("cheng.txt")) {
+            ftb.printAll();
             System.out.println("Well Done");
         } else {
             System.out.println("Failed");

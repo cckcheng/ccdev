@@ -25,6 +25,9 @@
  */
 package com.ccdev.pedigree;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author ccheng
@@ -55,4 +58,35 @@ public class Individual {
         this.father = father;
     }
 
+    private boolean leaf = false;
+
+    public boolean isLeaf() {
+        return leaf;
+    }
+
+    public void setLeaf(boolean leaf) {
+        this.leaf = leaf;
+    }
+
+    private List<Individual> children = new ArrayList<>();
+    
+    public void addChild(Individual child) {
+        this.children.add(child);
+    }
+    
+    public List<Individual> getChildren() {
+        return this.children;
+    }
+    
+    public Individual getNextSibling() {
+        if(this.father == null) return null;
+
+        boolean found = false;
+        for(Individual ind : this.father.children) {
+            if(found) return ind;
+            if(ind.equals(this)) found = true;
+        }
+
+        return null;
+    }
 }
