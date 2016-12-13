@@ -37,6 +37,16 @@ public class Individual {
     public Individual(String name) {
         this.name = name;
     }
+
+    private Long id;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
     
     private String name;
 
@@ -56,6 +66,26 @@ public class Individual {
 
     public void setFather(Individual father) {
         this.father = father;
+    }
+
+    private int gen;    // generation number
+
+    public int getGen() {
+        return gen;
+    }
+
+    public void setGen(int gen) {
+        this.gen = gen;
+    }
+
+    private int seq = 1;    // the sequence of brothers
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
     }
 
     private boolean leaf = false;

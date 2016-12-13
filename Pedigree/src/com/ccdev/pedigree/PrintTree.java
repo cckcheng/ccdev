@@ -29,25 +29,6 @@ package com.ccdev.pedigree;
  *
  * @author ccheng
  */
-public class Pedigree {
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        if(args.length < 1) {
-            System.out.println("Usage: java -jar [jar file] [filename]");
-            return;
-        }
-        
-        FamilyTreeBuilder ftb = new FamilyTreeBuilder(1);
-        if(ftb.processInput(args[0])) {
-            ftb.printAll();
-            System.out.println("Well Done");
-        } else {
-            System.out.println("Failed");
-            System.out.println(ftb.getError());
-        }
-    }
+public class PrintTree {
     
 }

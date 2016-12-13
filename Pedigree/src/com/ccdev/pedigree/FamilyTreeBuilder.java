@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -178,6 +179,10 @@ public class FamilyTreeBuilder {
             return false;
         }
   
+        if(!this.recordFamilyTree(1)){
+            return false;
+        }
+  
         return true;
     }
     
@@ -313,6 +318,47 @@ public class FamilyTreeBuilder {
             return false;
         }
 
+        List<Individual> tmpList = new ArrayList<>();
+        List<List<String>> genMembers = this.allGenerationMembers.get(0);
+        for(List<String> mm : genMembers) {
+            for(String name : mm) {
+                Individual ind = new Individual(name);
+                ind.setGen(startGen);
+                tmpList.add(ind);
+                this.indList.add(ind);
+            }
+        }
+
+        for(int x=1, total=this.allGenerationMembers.size(); x<total; x++) {
+            genMembers = this.allGenerationMembers.get(x);
+            for(List<String> mm : genMembers) {
+                Individual father = tmpList.get(0);
+                if(mm == null) {
+                    father.setLeaf(true);
+                    tmpList.remove(0);
+                    continue;
+                }
+                for(String name : mm) {
+                    Individual ind = new Individual(name);
+                    ind.setFather(father);
+                    ind.setGen(startGen + x);
+                    father.addChild(ind);
+                    tmpList.add(ind);
+                    this.indList.add(ind);
+                }
+                tmpList.remove(0);
+            }
+        }
+
+        return true;
+    }
+
+    private boolean recordFamilyTree(long pedigreeId) {
+        if(this.allGenerationMembers.isEmpty()) {
+            this.setError(ERROR_EMPTY_LIST);
+            return false;
+        }
+
         Common c = new Common();
         Properties conf = c.loadConfigFile(CONFIG_FILE);
         if(c.hasError()) {
@@ -329,12 +375,21 @@ public class FamilyTreeBuilder {
         Statement st = null;
         try {
             st = conn.createStatement();
+            
+            ResultSet rs = st.executeQuery("Select count(*) from individual where pedigree_id=");
 
             List<Individual> tmpList = new ArrayList<>();
             List<List<String>> genMembers = this.allGenerationMembers.get(0);
             for(List<String> mm : genMembers) {
                 for(String name : mm) {
                     Individual ind = new Individual(name);
+                    ind.setGen(startGen);
+                    Long id = recordIndividual(ind, pedigreeId, st);
+                    if(id == null) {
+                        this.setError(ERROR_SQL_EXCEPTION);
+                        return false;
+                    }
+                    ind.setId(id);
                     tmpList.add(ind);
                     this.indList.add(ind);
                 }
@@ -349,9 +404,19 @@ public class FamilyTreeBuilder {
                         tmpList.remove(0);
                         continue;
                     }
+                    
+                    int seq = 1;
                     for(String name : mm) {
                         Individual ind = new Individual(name);
                         ind.setFather(father);
+                        ind.setGen(startGen + x);
+                        ind.setSeq(seq++);
+                        Long id = recordIndividual(ind, pedigreeId, st);
+                        if(id == null) {
+                            this.setError(ERROR_SQL_EXCEPTION);
+                            return false;
+                        }
+                        ind.setId(id);
                         father.addChild(ind);
                         tmpList.add(ind);
                         this.indList.add(ind);
@@ -374,6 +439,21 @@ public class FamilyTreeBuilder {
         return true;
     }
 
+    private Long recordIndividual(Individual ind, long pedigreeId, Statement st) throws SQLException {
+        String q = "Insert Into individual set given_name=" + ind.getName();
+        q += ",set gen=" + ind.getGen();
+        q += ",set family_name=(select family_name from pedigree where id=" + pedigreeId + ")";
+        Individual father = ind.getFather();
+        if(father != null) {
+            q += ",set father_id=" + father.getId();
+            q += ",set seq=" + ind.getSeq();
+        }
+        int num = st.executeUpdate(q, Statement.RETURN_GENERATED_KEYS);
+        if(num != 1) return null;
+        
+        return st.getGeneratedKeys().getLong(1);
+    }
+
     public void printAll() {
         printNode(this.indList.get(0));
     }
@@ -381,7 +461,7 @@ public class FamilyTreeBuilder {
     private void printNode(Individual node) {
         if(node == null) return;
         
-        System.out.println(node.getName());
+        System.out.println(node.getName() + " #" + node.getGen());
         if(node.isLeaf() || node.getChildren().isEmpty()) {
             printSibling(node);
         } else {
