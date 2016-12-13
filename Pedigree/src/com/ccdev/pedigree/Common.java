@@ -72,7 +72,8 @@ public class Common {
                 errmsg.setLength(0);
 		String ip = conf.getProperty("db_ip").trim();
 		String dbname = conf.getProperty("db_name").trim();
-		String connectionUrl = "jdbc:mysql://" + ip + ":3306/" + dbname;
+		String connectionUrl = "jdbc:mysql://" + ip + ":3306/" + dbname
+                        + "?characterEncoding=UTF-8";   // this is important for UTF-8 charactors
 		String username = conf.getProperty("db_username").trim();
 		String password = conf.getProperty("db_password").trim();
 

@@ -34,9 +34,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -373,9 +375,10 @@ public class FamilyTreeBuilder {
         }
 
         Statement st = null;
+        PreparedStatement psInd = null;
         try {
             st = conn.createStatement();
-            
+
             ResultSet rs = st.executeQuery("Select * from pedigree where id=" + pedigreeId);
             if(!rs.next()) {
                 this.setError("Pedigree not exist");
@@ -395,13 +398,16 @@ public class FamilyTreeBuilder {
                 }
             }
 
+            psInd = conn.prepareStatement("Insert Into individual set pedigree_id=" + pedigreeId
+                    + ",given_name=?,family_name=?,gen=?,father_id=?,seq=?", PreparedStatement.RETURN_GENERATED_KEYS);
+
             List<Individual> tmpList = new ArrayList<>();
             List<List<String>> genMembers = this.allGenerationMembers.get(0);
             for(List<String> mm : genMembers) {
                 for(String name : mm) {
                     Individual ind = new Individual(name);
                     ind.setGen(startGen);
-                    Long id = recordIndividual(ind, ped, st);
+                    Long id = recordIndividual(ind, ped, psInd);
                     if(id == null) {
                         this.setError(ERROR_SQL_EXCEPTION);
                         return false;
@@ -428,7 +434,7 @@ public class FamilyTreeBuilder {
                         ind.setFather(father);
                         ind.setGen(startGen + x);
                         ind.setSeq(seq++);
-                        Long id = recordIndividual(ind, ped, st);
+                        Long id = recordIndividual(ind, ped, psInd);
                         if(id == null) {
                             this.setError(ERROR_SQL_EXCEPTION);
                             return false;
@@ -446,9 +452,10 @@ public class FamilyTreeBuilder {
             ex.printStackTrace();
             this.setError(ERROR_SQL_EXCEPTION);
             return false;
-        } finally {      
+        } finally {
             try {
                 if(st != null) st.close();
+                if(psInd != null) psInd.close();
                 if(conn != null) conn.close();
             } catch (SQLException ex) {
             }
@@ -457,23 +464,24 @@ public class FamilyTreeBuilder {
         return true;
     }
 
-    private Long recordIndividual(Individual ind, Pedigree ped, Statement st) throws SQLException {
-        String q = "Insert Into individual set given_name='" + ind.getName() + "'";
-        q += ",family_name='" + ped.getFamilyName() + "'";
-        q += ",gen=" + ind.getGen();
-        q += ",pedigree_id=" + ped.getId();
+    private Long recordIndividual(Individual ind, Pedigree ped, PreparedStatement ps) throws SQLException {
+        ps.setString(1, ind.getName());
+        ps.setString(2, ped.getFamilyName());
+        ps.setInt(3, ind.getGen());
         Individual father = ind.getFather();
         if(father != null) {
-            q += ",father_id=" + father.getId();
-            q += ",seq=" + ind.getSeq();
+            ps.setLong(4, father.getId());
+            ps.setInt(5, ind.getSeq());
+        } else {
+            ps.setNull(4, Types.BIGINT);
+            ps.setInt(5, 1);
         }
         
-        System.out.println(q);
-        int num = st.executeUpdate(q, Statement.RETURN_GENERATED_KEYS);
+        int num = ps.executeUpdate();
         if(num != 1) return null;
         
-        ResultSet rs = st.getGeneratedKeys();
-        if(rs.next()) return rs.getLong(1);
+        ResultSet rs = ps.getGeneratedKeys();
+        if(rs != null && rs.next()) return rs.getLong(1);
         
         return null;
     }
