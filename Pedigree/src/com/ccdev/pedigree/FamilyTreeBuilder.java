@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -71,6 +72,7 @@ public class FamilyTreeBuilder {
     static final int ERROR_FILE_LENGTH_OVERLIMIT = 1;
     static final int ERROR_FILE_NOT_FOUND = 2;
     static final int ERROR_IO_EXCEPTION = 3;
+    static final int ERROR_UNKNOWN_ENCODING = 4;
     static final int ERROR_SQL_EXCEPTION = 5;
 
     static final int ERROR_LINE_SHORT = 11;
@@ -140,7 +142,66 @@ public class FamilyTreeBuilder {
         this.errMsg.append(msg);
     }
 
-    public boolean processInput(String fileName) {
+    private boolean readFile(File inFile, List<String> lines) {
+        BufferedReader br = null;
+           
+        // try UTF-8 first
+        try {
+//            String sss = new String(Files.readAllBytes(inFile.toPath()), "UTF-16");
+//            List<String> tLines = Files.readAllLines(inFile.toPath(), StandardCharsets.UTF_16);
+            
+//            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile)));
+//            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), "UTF-8"));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), Charset.forName("UTF-8")));
+//            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), Charset.forName("Cp1252")));
+//            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), "CP936"));
+
+            int bt = br.read();
+            if(bt != 0xFEFF) {
+                br.reset(); // exception if not UTF-8
+            }
+            String s;
+            while((s = br.readLine()) != null) {
+                lines.add(s.trim());
+            }
+            return true;
+        } catch (FileNotFoundException ex) {
+            this.setError(ERROR_FILE_NOT_FOUND, ": " + inFile.getName());
+            return false;
+        } catch (IOException ex) {
+//            this.setError(ERROR_IO_EXCEPTION, ": " + inFile.getName());
+        } finally {
+            try {
+                if(br != null) br.close();
+            } catch (Exception e) {
+            }
+        }
+
+        // try CP936
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), "CP936"));
+            String s;
+            while((s = br.readLine()) != null) {
+                lines.add(s.trim());
+            }
+            return true;
+        } catch (FileNotFoundException ex) {
+            this.setError(ERROR_FILE_NOT_FOUND, ": " + inFile.getName());
+            return false;
+        } catch (IOException ex) {
+//            this.setError(ERROR_IO_EXCEPTION, ": " + inFile.getName());
+        } finally {
+            try {
+                if(br != null) br.close();
+            } catch (Exception e) {
+            }
+        }
+
+        this.setError(ERROR_UNKNOWN_ENCODING);
+        return false;
+    }
+
+    public boolean processInput(String fileName, boolean writeDB) {
         // the input file has to be saved as UTF-8, default is ANSI for Notepad
         File inFile = new File(fileName);
         if(!inFile.exists()) {
@@ -152,24 +213,9 @@ public class FamilyTreeBuilder {
             this.setError(ERROR_FILE_LENGTH_OVERLIMIT);
             return false;
         }
-
-        BufferedReader br;
-        List<String> lines;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(inFile), Charset.forName("UTF-8")));
-            if(br.read() != 0xFEFF) {
-                br.reset();
-            }
-            lines = new ArrayList<String>();
-            String s;
-            while((s = br.readLine()) != null) {
-                lines.add(s.trim());
-            }
-        } catch (FileNotFoundException ex) {
-            this.setError(ERROR_FILE_NOT_FOUND, ": " + fileName);
-            return false;
-        } catch (IOException ex) {
-            this.setError(ERROR_IO_EXCEPTION, ": " + fileName);
+        
+        List<String> lines = new ArrayList<String>();
+        if(!this.readFile(inFile, lines)) {
             return false;
         }
         
@@ -181,7 +227,7 @@ public class FamilyTreeBuilder {
             return false;
         }
   
-        if(!this.recordFamilyTree(1)){
+        if(writeDB && !this.recordFamilyTree(1)){
             return false;
         }
   

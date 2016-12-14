@@ -41,7 +41,7 @@ public class FamilyTree {
         }
         
         FamilyTreeBuilder ftb = new FamilyTreeBuilder(1);
-        if(ftb.processInput(args[0])) {
+        if(ftb.processInput(args[0], false)) {
             ftb.printAll();
             System.out.println("Well Done");
         } else {
