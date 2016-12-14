@@ -1,0 +1,22 @@
+body {
+	background-color:#93b0cc;
+}
+#login-win .x-window-mc {
+	background:#fff none;
+	border:1px solid #eee;
+}
+#login-logo .x-plain-body {
+	background:#f9f9f9 url(../images/fortinet_logo.gif) no-repeat center center;
+}
+#top-logo .x-plain-body {
+	background: url(../images/fortinet_logo.gif) no-repeat left center;
+}
+#login-form .x-plain-body {
+	background:#f9f9f9 none;
+	color:#222;
+	padding:5px 0  0 45px ;
+}
+#login-win .x-window-body {
+	background:#FFFFFF none repeat scroll 0%;
+	border:1px solid #99BBE8;
+}
