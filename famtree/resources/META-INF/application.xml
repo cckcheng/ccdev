@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://java.sun.com/xml/ns/j2ee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+                                 http://java.sun.com/xml/ns/j2ee/application_1_4.xsd"
+             version="1.4">
+    <display-name>famtree</display-name>
+
+    <initialize-in-order>true</initialize-in-order>
+
+    <module>
+        <ejb>famtreeejb.jar</ejb>
+    </module>
+
+    <module>
+        <web>
+            <web-uri>famtree.war</web-uri>
+            <context-root>/famtree</context-root>
+        </web>
+    </module>
+</application>
