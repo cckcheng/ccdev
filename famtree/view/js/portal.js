@@ -91,14 +91,14 @@ famtree.startApp = function() {
 		}
 	});
 
-	mainMenuItems.push({
-		text: 'Help',
-		iconCls: 'pdf',
-		scope: this,
-		handler: function(btn){
-			window.open('uploadServlet?filetype=help', 'download_win');
-		}
-	});
+//	mainMenuItems.push({
+//		text: 'Help',
+//		iconCls: 'pdf',
+//		scope: this,
+//		handler: function(btn){
+//			window.open('uploadServlet?filetype=help', 'download_win');
+//		}
+//	});
 
 	var viewport = new Ext.Viewport({
 		layout:'border',
