@@ -246,9 +246,10 @@ Ext.extend(famtree.user,Ext.grid.GridPanel, {
 			search_val = search_val.replace(/\*/g,'%');
 			search_val = '%' + search_val.trim() + '%';
 			ds.baseParams.username = search_val;
-		}
-		ds.load();
+                }
+                ds.load();
 	},
+        
 	handle_addManufactureUser :function() {
 		var grid = Ext.getCmp('famtree_user_grid_id');
 		var ds = grid.getStore();
@@ -257,7 +258,7 @@ Ext.extend(famtree.user,Ext.grid.GridPanel, {
         handle_addFortinetUser :function() {
 		var grid = Ext.getCmp('famtree_user_grid_id');
 		var ds = grid.getStore();
-		famtree.editUser(fortinet','new',ds);
+		famtree.editUser('fortinet','new',ds);
 	}
 });
 famtree.editUser = function(type,which, ds, record){
