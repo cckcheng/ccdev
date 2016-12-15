@@ -7,19 +7,22 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import java.util.Date;
 
-import org.apache.log4j.PropertyConfigurator;
+//import org.apache.log4j.PropertyConfigurator;
 
 import com.ccdev.famtree.bean.UserTbl;
 import com.ccdev.famtree.impl.StringFunc;
 import com.ccdev.famtree.impl.myUtil;
 import java.util.Hashtable;
+import javax.ejb.EJB;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
 @SuppressWarnings("serial")
 public class loginServlet extends HttpServlet {
+    @EJB(name = "java:app/biosgen/ActionBean!services.ejb.Action")
+    private Action action;
 
-	@Override
+        @Override
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		ServletConfig config = getServletConfig();
@@ -29,7 +32,7 @@ public class loginServlet extends HttpServlet {
 		if (isRelativePosition.equals("true")) {
 			root = config.getServletContext().getRealPath("/");
 		}
-		PropertyConfigurator.configure(root + logConfiguration);
+//		PropertyConfigurator.configure(root + logConfiguration);
 
 		response.setContentType("text/html");
 		PrintWriter out = response.getWriter();
@@ -48,7 +51,7 @@ public class loginServlet extends HttpServlet {
 		try {
 			HttpSession session = request.getSession(true);
 			InitialContext ctx = new InitialContext();
-			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 			StringBuilder msg = new StringBuilder();
 			UserTbl user = action.login(uname, passwd, msg);
 			if (user == null) {
@@ -88,7 +91,7 @@ public class loginServlet extends HttpServlet {
 		if (isRelativePosition.equals("true")) {
 			root = config.getServletContext().getRealPath("/");
 		}
-		PropertyConfigurator.configure(root + logConfiguration);
+//		PropertyConfigurator.configure(root + logConfiguration);
 
 		response.setContentType("text/json; charset=gb2312");
 		PrintWriter out = response.getWriter();
@@ -109,7 +112,7 @@ public class loginServlet extends HttpServlet {
 			try {
 				HttpSession session = request.getSession(true);
 				InitialContext ctx = new InitialContext();
-				Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//				Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 				if (session == null) {
 					out.write(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 					return;
@@ -145,7 +148,7 @@ public class loginServlet extends HttpServlet {
 		try {
 			HttpSession session = request.getSession(true);
 			InitialContext ctx = new InitialContext();
-			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 			StringBuilder msg = new StringBuilder();
 			UserTbl user = action.login(uname, passwd, msg);
 			if (user == null) {
