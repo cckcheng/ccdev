@@ -36,18 +36,11 @@ import com.ccdev.famtree.bean.*;
 @Stateless
 @SuppressWarnings(value = {"unchecked"})
 public class ActionBean implements Action {
-	@javax.persistence.PersistenceUnit
-	private EntityManagerFactory emf;
-
+        @PersistenceContext(unitName = "foshanshop")
 	protected EntityManager em;
-	private void lookupEntityManager() {
-		em = emf.createEntityManager();
-//		myUtil.dbg(5,em.toString());
-	}
-
+        
 	public UserTbl login(String uname, String password, StringBuilder msg) {
 		try {
-			lookupEntityManager();
 			String q = "Select u FROM UserTbl as u WHERE u.username='" + uname + "'";
 			if (uname.indexOf("@") >= 0) {
 				if (!Macro.PASSWORD_UNCHECK) {
@@ -80,154 +73,118 @@ public class ActionBean implements Action {
 			msg.append("Unexpected Error");
 			e.printStackTrace();
 			return null;
-		} finally {
-			em.close();
 		}
 	}
 
 	public UserTbl findUser(Long user_id) {
-		try{
-			lookupEntityManager();
-			return em.find(UserTbl.class, user_id);
-		} catch (Exception e) {
-			return null;
-		} finally {
-			em.close();
-		}
+                return em.find(UserTbl.class, user_id);
 	}
 
 	public String login_success(UserTbl user) {
-		try{
-			lookupEntityManager();
-			boolean externalUser = (user.getUsername().indexOf("@") > 0);
+                boolean externalUser = (user.getUsername().indexOf("@") > 0);
 
-			JSONObject result = new JSONObject();
-			int level = user.getLevel();
+                JSONObject result = new JSONObject();
+                int level = user.getLevel();
 
-			JSONObject macro = new JSONObject();
-			macro.put("SYSTEM_NAME", Macro.SYSTEM_NAME);
-			macro.put("VERSION", Macro.version);
-			macro.put("ADMIN_LEVEL", Macro.ADMIN_LEVEL);
-			macro.put("MAX_STRLEN", Macro.MAX_STRLEN);
+                JSONObject macro = new JSONObject();
+                macro.put("SYSTEM_NAME", Macro.SYSTEM_NAME);
+                macro.put("VERSION", Macro.version);
+                macro.put("ADMIN_LEVEL", Macro.ADMIN_LEVEL);
+                macro.put("MAX_STRLEN", Macro.MAX_STRLEN);
 
-			result.put("macro", macro);
+                result.put("macro", macro);
 
-			JSONObject userProp = new JSONObject();
-			userProp.put("name", user.getFullname());
-			userProp.put("username", user.getUsername());
-			userProp.put("level", user.getLevel());
-			result.put("user", userProp);
+                JSONObject userProp = new JSONObject();
+                userProp.put("name", user.getFullname());
+                userProp.put("username", user.getUsername());
+                userProp.put("level", user.getLevel());
+                result.put("user", userProp);
 
-			if (externalUser && user.getInused() < 0) {
-				result.put("firstTime", true);
-			}
+                if (externalUser && user.getInused() < 0) {
+                        result.put("firstTime", true);
+                }
 
-			JSONObject modules = new JSONObject();
+                JSONObject modules = new JSONObject();
 
-			if (user.getLevel() == Macro.ADMIN_LEVEL) {
-				modules.put(Macro.MODULE_NAME_ADMIN, "manager");
+                if (user.getLevel() == Macro.ADMIN_LEVEL) {
+                        modules.put(Macro.MODULE_NAME_ADMIN, "manager");
 
-			} else {
-				String q = "Select bit_or(g.user_mask),bit_or(g.manager_mask) from group_tbl g" +
-						" join group_user gu on gu.user_id=" + user.getUserId() + " And gu.group_id=g.group_id";
-				myUtil.dbg(5, q);
+                } else {
+                        String q = "Select bit_or(g.user_mask),bit_or(g.manager_mask) from group_tbl g" +
+                                        " join group_user gu on gu.user_id=" + user.getUserId() + " And gu.group_id=g.group_id";
+                        myUtil.dbg(5, q);
 
-				List<Object[]> rs = em.createNativeQuery(q).getResultList();
-				for(Object[] o : rs) {
-					int user_mask = myUtil.IntegerWithNullToZero(o[0]);
-					int manager_mask = myUtil.IntegerWithNullToZero(o[1]);
+                        List<Object[]> rs = em.createNativeQuery(q).getResultList();
+                        for(Object[] o : rs) {
+                                int user_mask = myUtil.IntegerWithNullToZero(o[0]);
+                                int manager_mask = myUtil.IntegerWithNullToZero(o[1]);
 
-					if((manager_mask & Macro.MODULE_ADMIN) > 0) {
-						modules.put(Macro.MODULE_NAME_ADMIN, "manager");
-					} else if((user_mask & Macro.MODULE_ADMIN) > 0) {
-						modules.put(Macro.MODULE_NAME_ADMIN, "user");
-					}
-				}
-			}
+                                if((manager_mask & Macro.MODULE_ADMIN) > 0) {
+                                        modules.put(Macro.MODULE_NAME_ADMIN, "manager");
+                                } else if((user_mask & Macro.MODULE_ADMIN) > 0) {
+                                        modules.put(Macro.MODULE_NAME_ADMIN, "user");
+                                }
+                        }
+                }
 
-			result.put("modules", modules);
+                result.put("modules", modules);
 
-			result.put("ExternalUser", externalUser);
+                result.put("ExternalUser", externalUser);
 
-			result.put("success", "true");
-			return result.toString();
-		} catch (Exception e) {
-			return myUtil.actionFail(Macro.ERR_DB_QUERY);
-		} finally {
-			em.close();
-		}
+                result.put("success", "true");
+                return result.toString();
 	}
 
 	public String doAction(UserTbl user, HttpServletRequest request) {
-		try{
-			lookupEntityManager();
-			Hashtable<String, DoAction> fun = new Hashtable<String, DoAction>();
-			fun.put("Admin".toLowerCase(), new Admin());
+                Hashtable<String, DoAction> fun = new Hashtable<String, DoAction>();
+                fun.put("Admin".toLowerCase(), new Admin());
 
-			String actName = request.getParameter("dowhat");
-			if (actName == null) {
-				return myUtil.actionFail("dowhat can not be null!");
-			}
-			actName = actName.toLowerCase();
+                String actName = request.getParameter("dowhat");
+                if (actName == null) {
+                        return myUtil.actionFail("dowhat can not be null!");
+                }
+                actName = actName.toLowerCase();
 
-			if (fun.containsKey(actName)) {
-				Set<String> ignoredActions = new HashSet();
+                if (fun.containsKey(actName)) {
+                        Set<String> ignoredActions = new HashSet();
 //				ignoredActions.add("getUserList".toLowerCase());
 //				ignoredActions.add("viewUploads".toLowerCase());
-				String action = StringFunc.TrimedString(request.getParameter("action"));
-				if (!ignoredActions.contains(action.toLowerCase())) {
-					myUtil.dumpRequest(request);
-				}
+                        String action = StringFunc.TrimedString(request.getParameter("action"));
+                        if (!ignoredActions.contains(action.toLowerCase())) {
+                                myUtil.dumpRequest(request);
+                        }
 
-				return fun.get(actName).doAction(user, request, em);
-			}
-			return myUtil.actionFail("Action " + actName + " is not supported!");
-		} catch (Exception e) {
-			return myUtil.actionFail(Macro.ERR_DB_QUERY);
-		} finally {
-			em.close();
-		}
+                        return fun.get(actName).doAction(user, request, em);
+                }
+                return myUtil.actionFail("Action " + actName + " is not supported!");
 	}
 	public void updateLastLogin(UserTbl user){
-		try{
-			lookupEntityManager();
-			user.setLastLogin(new Date());
-			em.merge(user);
-		} catch (Exception e) {
-		} finally {
-			em.close();
-		}
+                user.setLastLogin(new Date());
+                em.merge(user);
 	}
 	public void disableUser(UserTbl user){
-		try{
-			lookupEntityManager();
-			user.setDisabled(1);
-			em.merge(user);
-		} catch (Exception e) {
-		} finally {
-			em.close();
-		}
+                user.setDisabled(1);
+                em.merge(user);
 	}
 
 
 	public String doUpload(UserTbl user, HttpServletRequest request) {
-		try {
-			lookupEntityManager();
-			myUtil.dbg(5, "--> action.doUpload start -" );
-			boolean isMultipart = ServletFileUpload.isMultipartContent(request);
-			if (!isMultipart) {
-				myUtil.dbg(2, "not multipart ");
-				return myUtil.actionSuccess();
-			}
+            try{
+                myUtil.dbg(5, "--> action.doUpload start -" );
+                boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+                if (!isMultipart) {
+                        myUtil.dbg(2, "not multipart ");
+                        return myUtil.actionSuccess();
+                }
 
-			DiskFileItemFactory factory = new DiskFileItemFactory();
-			myUtil.dbg(5, "--> after create factory -" );
-			ServletFileUpload upload = new ServletFileUpload(factory);
-			myUtil.dbg(5, "--> after create upload -" );
+                DiskFileItemFactory factory = new DiskFileItemFactory();
+                myUtil.dbg(5, "--> after create factory -" );
+                ServletFileUpload upload = new ServletFileUpload(factory);
+                myUtil.dbg(5, "--> after create upload -" );
 
-			List items = upload.parseRequest(request);
-			//if (1==1) throw new FileUploadException();
-			myUtil.dbg(5, "--> after upload.parseRequest");
+                List items = upload.parseRequest(request);
+                //if (1==1) throw new FileUploadException();
+                myUtil.dbg(5, "--> after upload.parseRequest");
 //			Iterator iter = items.iterator();
 
 			/*
@@ -252,42 +209,40 @@ public class ActionBean implements Action {
 
 			upload.setProgressListener(progressListener);
 			*/
-			HashMap form = new HashMap();
-			myUtil.dbg(5, "--> after new HashMap()");
-			List<FileItem> file_items = (List<FileItem>) items;
-			for (FileItem item : file_items) {
-				if (item.isFormField()) {
-					String name = item.getFieldName();
-					InputStream stream = item.getInputStream();
-					String value = Streams.asString(stream);
-					form.put(name, value);
+                HashMap form = new HashMap();
+                myUtil.dbg(5, "--> after new HashMap()");
+                List<FileItem> file_items = (List<FileItem>) items;
+                for (FileItem item : file_items) {
+                        if (item.isFormField()) {
+                                String name = item.getFieldName();
+                                InputStream stream = item.getInputStream();
+                                String value = Streams.asString(stream);
+                                form.put(name, value);
 
-					myUtil.dbg(2, "field name: " + name+",value="+value);
+                                myUtil.dbg(2, "field name: " + name+",value="+value);
 
-					stream.close();
-				}
-			}
+                                stream.close();
+                        }
+                }
 
-			String dowhat = StringFunc.TrimedString(form.get("dowhat"));
-			myUtil.dbg(5, "dowhat: " + dowhat);
-			String action = StringFunc.TrimedString(form.get("action"));
-			myUtil.dbg(5, "action: " + action);
+                String dowhat = StringFunc.TrimedString(form.get("dowhat"));
+                myUtil.dbg(5, "dowhat: " + dowhat);
+                String action = StringFunc.TrimedString(form.get("action"));
+                myUtil.dbg(5, "action: " + action);
 
 
-			if (dowhat.equalsIgnoreCase("OptRevision")) {
+                if (dowhat.equalsIgnoreCase("OptRevision")) {
 
-			}
+                }
 
-			return "{success:true}";
-		} catch (FileUploadException e) {
-			myUtil.dbg(5,  e.toString());
-			return myUtil.actionFail("Upload File Error, please try again.");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "";
-		} finally {
-			em.close();
-		}
+                return "{success:true}";
+            } catch (FileUploadException e) {
+                    myUtil.dbg(5,  e.toString());
+                    return myUtil.actionFail("Upload File Error, please try again.");
+            } catch (Exception e) {
+                    e.printStackTrace();
+                    return "";
+            }
 
 	}
 	private boolean isNumberOrLetter(String str){
@@ -383,8 +338,6 @@ public class ActionBean implements Action {
 			if (archive_name.equals("")) return;
 
 			dwnfile(archive_name, response, context, op);
-		} else if (filetype.equalsIgnoreCase("help")){
-			dwnfile("/famtree/Fortinet-Vendor-Portal-Online-Help.pdf", response, context, op);
 		}else {
 			String dirname = request.getParameter("dirname");
 			String filename = request.getParameter("filename");
