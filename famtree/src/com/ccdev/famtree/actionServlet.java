@@ -13,9 +13,12 @@ import com.ccdev.famtree.impl.StringFunc;
 import com.ccdev.famtree.bean.*;
 import java.util.Date;
 import java.util.Enumeration;
+import javax.ejb.EJB;
 
 @SuppressWarnings("serial")
 public class actionServlet extends HttpServlet {
+    @EJB(name = "java:app/biosgen/ActionBean!services.ejb.Action")
+    private Action action;
 
 	protected void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -70,7 +73,7 @@ public class actionServlet extends HttpServlet {
 
 		try {
 			InitialContext ctx = new InitialContext();
-			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 
 			if(trustConnection) {
 				Long user_id = myUtil.LongWithNullToZero(request.getHeader("user_id"));

@@ -16,9 +16,12 @@ import javax.servlet.http.HttpSession;
 
 import com.ccdev.famtree.bean.UserTbl;
 import com.ccdev.famtree.impl.myUtil;
+import javax.ejb.EJB;
 
 @SuppressWarnings("serial")
 public class uploadServlet extends HttpServlet {
+    @EJB(name = "java:app/biosgen/ActionBean!services.ejb.Action")
+    private Action action;
 
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
@@ -42,7 +45,7 @@ public class uploadServlet extends HttpServlet {
 		try {
 			InitialContext ctx = new InitialContext();
 			myUtil.dbg(5, "--> after new InitialContext -" );
-			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 			myUtil.dbg(5, "--> before action.doUpload -" );
 			String res = action.doUpload(user, request);
 			//out.write("{success:true}");
@@ -76,7 +79,7 @@ public class uploadServlet extends HttpServlet {
 		session.setAttribute("time", new Date().getTime());
 		try {
 			InitialContext ctx = new InitialContext();
-			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
+//			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 
 			action.download(user, request, response, context, op);
 			return;
