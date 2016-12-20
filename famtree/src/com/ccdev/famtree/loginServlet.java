@@ -9,7 +9,7 @@ import java.util.Date;
 
 //import org.apache.log4j.PropertyConfigurator;
 
-import com.ccdev.famtree.bean.UserTbl;
+import com.ccdev.famtree.bean.Users;
 import com.ccdev.famtree.impl.StringFunc;
 import com.ccdev.famtree.impl.myUtil;
 import java.util.Hashtable;
@@ -53,14 +53,14 @@ public class loginServlet extends HttpServlet {
 			InitialContext ctx = new InitialContext();
 //			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 			StringBuilder msg = new StringBuilder();
-			UserTbl user = action.login(uname, passwd, msg);
+			Users user = action.login(uname, passwd, msg);
 			if (user == null) {
 				return;
 			}else if (msg.length()>0){
 				return;
 			}
 
-			if(user != null && user.getInused() < 0) {	// only for the first time users, otherwiss direct to login page
+			if(user != null && user.getLastLogin() == null) {	// only for the first time users, otherwiss direct to login page
 				session.setAttribute("user", user);
 				session.setAttribute("config", config);
 				Date d = new Date();
@@ -117,7 +117,7 @@ public class loginServlet extends HttpServlet {
 					out.write(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 					return;
 				}
-				UserTbl user = (UserTbl) session.getAttribute("user");
+				Users user = (Users) session.getAttribute("user");
 				if (user == null) {
 					out.write(myUtil.actionFail("System error", Macro.FAILCODE_TIMEOUT));
 					return;
@@ -150,7 +150,7 @@ public class loginServlet extends HttpServlet {
 			InitialContext ctx = new InitialContext();
 //			Action action = (Action) ctx.lookup("famtree/ActionBean/local");
 			StringBuilder msg = new StringBuilder();
-			UserTbl user = action.login(uname, passwd, msg);
+			Users user = action.login(uname, passwd, msg);
 			if (user == null) {
 				out.write(myUtil.actionFail(errMsg));
 				return;

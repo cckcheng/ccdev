@@ -223,7 +223,7 @@ public class myUtil {
 		}
 	}
 
-	public static final String loginSuccess(UserTbl user, String msg) {
+	public static final String loginSuccess(Users user, String msg) {
 		try {
 			JSONObject result = new JSONObject();
 			result.put("success", "true");
@@ -404,7 +404,7 @@ public class myUtil {
         }
     }
 
-	public static UserLog log(UserTbl user, HttpServletRequest request, EntityManager em) {
+	public static UserLog log(Users user, HttpServletRequest request, EntityManager em) {
 		String dowhat = "";
 		String action = "";
 		String param = "";
@@ -565,7 +565,7 @@ public class myUtil {
 
 		return true;
 	}
-	public static final void audit(UserTbl user, int acttype, Long orgid, String dowhat, EntityManager em) {
+	public static final void audit(Users user, int acttype, Long orgid, String dowhat, EntityManager em) {
 		Audit audit = new Audit(orgid, dowhat, acttype, user);
 		em.persist(audit);
 	}
@@ -644,10 +644,10 @@ public class myUtil {
 		return query.getResultList();
 	}
 
-	public static final boolean hasPermission(UserTbl user, int module, EntityManager em) {
+	public static final boolean hasPermission(Users user, int module, EntityManager em) {
 		if (user.getLevel() == Macro.ADMIN_LEVEL) return true;
-		String q = "Select bit_or(g.mask) from group_tbl g join group_user gu on gu.user_id="
-				+ user.getUserId() + " And gu.group_id=g.group_id";
+		String q = "Select bit_or(g.mask) from groups g join group_user gu on gu.user_id="
+				+ user.getId() + " And gu.group_id=g.group_id";
 		int mask = myUtil.getIntegerBySQL(q, em);
 		return (mask & module) > 0;
 	}

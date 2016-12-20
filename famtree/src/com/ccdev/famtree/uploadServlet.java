@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.ccdev.famtree.bean.UserTbl;
+import com.ccdev.famtree.bean.Users;
 import com.ccdev.famtree.impl.myUtil;
 import javax.ejb.EJB;
 
@@ -34,12 +34,12 @@ public class uploadServlet extends HttpServlet {
 			out.write(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 			return;
 		}
-		UserTbl user = (UserTbl) session.getAttribute("user");
+		Users user = (Users) session.getAttribute("user");
 		if (user == null) {
 			out.write(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 			return;
 		}
-		myUtil.dbg(5, "--> uploadServlet start - " + user.getUsername() + "(" + user.getFullname() + ")" );
+		myUtil.dbg(5, "--> uploadServlet start - " + user.getUsername());
 
 		session.setAttribute("time", new Date().getTime());
 		try {
@@ -70,7 +70,7 @@ public class uploadServlet extends HttpServlet {
 			op.print(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 			return;
 		}
-		UserTbl user = (UserTbl) session.getAttribute("user");
+		Users user = (Users) session.getAttribute("user");
 		if (user == null) {
 			op.print(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 			return;

@@ -25,14 +25,12 @@ import javax.persistence.TemporalType;
  */
 @Entity
 @Table(name = "user_log")
-@NamedQueries({@NamedQuery(name = "UserLog.findAll", query = "SELECT u FROM UserLog u")})
 public class UserLog implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
-	@Column(name = "userlog_id")
-	private Long userlogId;
+	private Long id;
 	@Column(name = "actiontime")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date actiontime;
@@ -50,10 +48,6 @@ public class UserLog implements Serializable {
 	public UserLog() {
 	}
 
-	public UserLog(Long userlogId) {
-		this.userlogId = userlogId;
-	}
-
 	public UserLog(String username, String dowhat, String action, String info) {
 		this.username = username;
 		this.dowhat = dowhat;
@@ -62,12 +56,12 @@ public class UserLog implements Serializable {
 		this.actiontime = new Date();
 	}
 
-	public Long getUserlogId() {
-		return userlogId;
+	public Long getId() {
+		return id;
 	}
 
-	public void setUserlogId(Long userlogId) {
-		this.userlogId = userlogId;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public Date getActiontime() {
@@ -121,7 +115,7 @@ public class UserLog implements Serializable {
 	@Override
 	public int hashCode() {
 		int hash = 0;
-		hash += (userlogId != null ? userlogId.hashCode() : 0);
+		hash += (id != null ? id.hashCode() : 0);
 		return hash;
 	}
 
@@ -132,7 +126,7 @@ public class UserLog implements Serializable {
 			return false;
 		}
 		UserLog other = (UserLog) object;
-		if ((this.userlogId == null && other.userlogId != null) || (this.userlogId != null && !this.userlogId.equals(other.userlogId))) {
+		if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
 			return false;
 		}
 		return true;
@@ -140,7 +134,7 @@ public class UserLog implements Serializable {
 
 	@Override
 	public String toString() {
-		return "com.ccdev.famtree.bean.UserLog[userlogId=" + userlogId + "]";
+		return "com.ccdev.famtree.bean.UserLog[id=" + id + "]";
 	}
 
 }

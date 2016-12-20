@@ -25,15 +25,13 @@ import javax.persistence.Table;
  * @author Colin Cheng
  */
 @Entity
-@Table(name = "group_tbl")
-@NamedQueries({@NamedQuery(name = "GroupTbl.findAll", query = "SELECT g FROM GroupTbl g")})
-public class GroupTbl implements Serializable {
+@Table(name = "groups")
+public class Groups implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
-	@Column(name = "group_id")
-	private Long groupId;
+	private Long id;
 	@Column(name = "description")
 	private String description;
 	@Basic(optional = false)
@@ -46,28 +44,24 @@ public class GroupTbl implements Serializable {
 	private Integer userMask;	// bit array, indicate the module(s) is/are permitted (user priviledge), see Macro for module info
 	@Column(name = "manager_mask")
 	private Integer managerMask;	// bit array, indicate the module(s) is/are permitted (manager priviledge), see Macro for module info
-	@ManyToMany(mappedBy = "groupTblCollection")
-	private Collection<UserTbl> userTblCollection;
+	@ManyToMany(mappedBy = "groupCollection")
+	private Collection<Users> userCollection;
 
-	public GroupTbl() {
+	public Groups() {
 	}
 
-	public GroupTbl(Long groupId) {
-		this.groupId = groupId;
-	}
+        public Groups(String name, String descript) {
+            this.groupname = name;
+            this.description = descript;
+        }
 
-	public GroupTbl(String groupname,String desc) {
-		this.groupname = groupname;
-		this.description = desc;
-	}
+        public Long getId() {
+            return id;
+        }
 
-	public Long getGroupId() {
-		return groupId;
-	}
-
-	public void setGroupId(Long groupId) {
-		this.groupId = groupId;
-	}
+        public void setId(Long id) {
+            this.id = id;
+        }
 
 	public String getDescription() {
 		return description;
@@ -109,29 +103,29 @@ public class GroupTbl implements Serializable {
 		this.managerMask = managerMask;
 	}
 
-	public Collection<UserTbl> getUserTblCollection() {
-		return userTblCollection;
+	public Collection<Users> getUserCollection() {
+		return userCollection;
 	}
 
-	public void setUserTblCollection(Collection<UserTbl> userTblCollection) {
-		this.userTblCollection = userTblCollection;
+	public void setUserCollection(Collection<Users> userCollection) {
+		this.userCollection = userCollection;
 	}
 
 	@Override
 	public int hashCode() {
 		int hash = 0;
-		hash += (groupId != null ? groupId.hashCode() : 0);
+		hash += (id != null ? id.hashCode() : 0);
 		return hash;
 	}
 
 	@Override
 	public boolean equals(Object object) {
 		// TODO: Warning - this method won't work in the case the id fields are not set
-		if (!(object instanceof GroupTbl)) {
+		if (!(object instanceof Groups)) {
 			return false;
 		}
-		GroupTbl other = (GroupTbl) object;
-		if ((this.groupId == null && other.groupId != null) || (this.groupId != null && !this.groupId.equals(other.groupId))) {
+		Groups other = (Groups) object;
+		if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
 			return false;
 		}
 		return true;
@@ -139,7 +133,7 @@ public class GroupTbl implements Serializable {
 
 	@Override
 	public String toString() {
-		return "com.ccdev.famtree.bean.GroupTbl[groupId=" + groupId + "]";
+		return "com.ccdev.famtree.bean.Groups[id=" + id + "]";
 	}
 	 public boolean on_using(EntityManager em) {
 		return false;

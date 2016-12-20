@@ -22,7 +22,6 @@ import javax.persistence.TemporalType;
  * @author myu
  */
 @Entity
-//@Table(indexes = { @Index(name="index1", columnNames={"orgid"} ) } )
 public class Audit implements Serializable {
 	private Long id;
 	private static final long serialVersionUID = 1L;
@@ -32,7 +31,7 @@ public class Audit implements Serializable {
 		this.createtime = new Date();
 	}
 
-	public Audit(Long orgid, String dowhat, int acttype,UserTbl creator) {
+	public Audit(Long orgid, String dowhat, int acttype,Users creator) {
 		if (orgid>0) this.orgid = orgid;
 		this.dowhat = dowhat;
 		this.creator = creator;
@@ -68,7 +67,7 @@ public class Audit implements Serializable {
 	public void setDowhat(String dowhat) {
 		this.dowhat = dowhat;
 	}
-	protected UserTbl creator;
+	protected Users creator;
 
 	/**
 	 * Get the value of creator
@@ -77,7 +76,7 @@ public class Audit implements Serializable {
 	 */
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "creator_id")
-	public UserTbl getCreator() {
+	public Users getCreator() {
 		return creator;
 	}
 
@@ -86,7 +85,7 @@ public class Audit implements Serializable {
 	 *
 	 * @param creator new value of creator
 	 */
-	public void setCreator(UserTbl creator) {
+	public void setCreator(Users creator) {
 		this.creator = creator;
 	}
 	protected Date createtime;
@@ -171,6 +170,6 @@ public class Audit implements Serializable {
 
 	@Override
 	public String toString() {
-		return "com.ccdev.qcdb.bean.Audit[id=" + id + "]";
+		return "com.ccdev.famtree.bean.Audit[id=" + id + "]";
 	}
 }

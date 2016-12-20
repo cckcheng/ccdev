@@ -48,7 +48,7 @@ public class actionServlet extends HttpServlet {
 		response.setContentType("text/json; charset=utf-8");
 		PrintWriter out = response.getWriter();
 		HttpSession session = null;
-		UserTbl user = null;
+		Users user = null;
 		boolean trustConnection = myUtil.BooleanNullToFalse(request.getHeader("trustConnection"), "true");
 		if(!trustConnection) {
 			session = request.getSession(false);
@@ -57,15 +57,14 @@ public class actionServlet extends HttpServlet {
 				return;
 			}
 
-			user = (UserTbl) session.getAttribute("user");
+			user = (Users) session.getAttribute("user");
 			if (user == null) {
 				out.write(myUtil.actionFail("Time out", Macro.FAILCODE_TIMEOUT));
 				return;
 			}
 
 			Date d = new Date();
-			System.out.println("\n***Version: " + Macro.version + "; User: " + user.getUsername() + " (" +
-					user.getFullname() + ") @ " + d.toString());
+			System.out.println("\n***Version: " + Macro.version + "; User: " + user.getUsername() + " @ " + d.toString());
 
 		}
 

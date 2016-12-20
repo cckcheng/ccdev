@@ -39,9 +39,9 @@ public class ActionBean implements Action {
         @PersistenceContext(unitName = "foshanshop")
 	protected EntityManager em;
         
-	public UserTbl login(String uname, String password, StringBuilder msg) {
+	public Users login(String uname, String password, StringBuilder msg) {
 		try {
-			String q = "Select u FROM UserTbl as u WHERE u.username='" + uname + "'";
+			String q = "Select u FROM Users as u WHERE u.username='" + uname + "'";
 			if (uname.indexOf("@") >= 0) {
 				if (!Macro.PASSWORD_UNCHECK) {
 					q += " and u.password=MD5('" + password + "')";
@@ -49,7 +49,7 @@ public class ActionBean implements Action {
 			}
 			q += " and (u.disabled =0 or u.disabled is null)";
 			myUtil.dbg(5, q);
-			UserTbl u =(UserTbl) em.createQuery(q).getSingleResult();
+			Users u =(Users) em.createQuery(q).getSingleResult();
 			if (u == null) return null;
 			else {
 				if (uname.indexOf("@")>=0){
@@ -76,13 +76,11 @@ public class ActionBean implements Action {
 		}
 	}
 
-	public UserTbl findUser(Long user_id) {
-                return em.find(UserTbl.class, user_id);
+	public Users findUser(Long user_id) {
+                return em.find(Users.class, user_id);
 	}
 
-	public String login_success(UserTbl user) {
-                boolean externalUser = (user.getUsername().indexOf("@") > 0);
-
+	public String login_success(Users user) {
                 JSONObject result = new JSONObject();
                 int level = user.getLevel();
 
@@ -95,12 +93,13 @@ public class ActionBean implements Action {
                 result.put("macro", macro);
 
                 JSONObject userProp = new JSONObject();
-                userProp.put("name", user.getFullname());
+                userProp.put("family_name", user.getFamilyName());
+                userProp.put("given_name", user.getGivinName());
                 userProp.put("username", user.getUsername());
                 userProp.put("level", user.getLevel());
                 result.put("user", userProp);
 
-                if (externalUser && user.getInused() < 0) {
+                if (user.getLastLogin() == null) {
                         result.put("firstTime", true);
                 }
 
@@ -110,8 +109,8 @@ public class ActionBean implements Action {
                         modules.put(Macro.MODULE_NAME_ADMIN, "manager");
 
                 } else {
-                        String q = "Select bit_or(g.user_mask),bit_or(g.manager_mask) from group_tbl g" +
-                                        " join group_user gu on gu.user_id=" + user.getUserId() + " And gu.group_id=g.group_id";
+                        String q = "Select bit_or(g.user_mask),bit_or(g.manager_mask) from groups g" +
+                                        " join group_user gu on gu.user_id=" + user.getId() + " And gu.group_id=g.group_id";
                         myUtil.dbg(5, q);
 
                         List<Object[]> rs = em.createNativeQuery(q).getResultList();
@@ -129,13 +128,11 @@ public class ActionBean implements Action {
 
                 result.put("modules", modules);
 
-                result.put("ExternalUser", externalUser);
-
                 result.put("success", "true");
                 return result.toString();
 	}
 
-	public String doAction(UserTbl user, HttpServletRequest request) {
+	public String doAction(Users user, HttpServletRequest request) {
                 Hashtable<String, DoAction> fun = new Hashtable<String, DoAction>();
                 fun.put("Admin".toLowerCase(), new Admin());
 
@@ -158,17 +155,17 @@ public class ActionBean implements Action {
                 }
                 return myUtil.actionFail("Action " + actName + " is not supported!");
 	}
-	public void updateLastLogin(UserTbl user){
+	public void updateLastLogin(Users user){
                 user.setLastLogin(new Date());
                 em.merge(user);
 	}
-	public void disableUser(UserTbl user){
+	public void disableUser(Users user){
                 user.setDisabled(1);
                 em.merge(user);
 	}
 
 
-	public String doUpload(UserTbl user, HttpServletRequest request) {
+	public String doUpload(Users user, HttpServletRequest request) {
             try{
                 myUtil.dbg(5, "--> action.doUpload start -" );
                 boolean isMultipart = ServletFileUpload.isMultipartContent(request);
@@ -326,7 +323,7 @@ public class ActionBean implements Action {
 		}
 	}
 
-	public void download(UserTbl user, HttpServletRequest request, HttpServletResponse response, ServletContext context, ServletOutputStream op) {
+	public void download(Users user, HttpServletRequest request, HttpServletResponse response, ServletContext context, ServletOutputStream op) {
 		myUtil.log(user, request, em);
 		String filetype = StringFunc.TrimedString(request.getParameter("filetype"));
 		myUtil.dbg(5, filetype);

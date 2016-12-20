@@ -30,7 +30,7 @@ public class Email {
 	static public String adminEmails(EntityManager em) {
 //		if(Macro.PASSWORD_UNCHECK) return "ccheng" + Macro.EMAIL_AFFIX;
 
-		String q = "Select username from user_tbl Where level=" + Macro.ADMIN_LEVEL;
+		String q = "Select username from users Where level=" + Macro.ADMIN_LEVEL;
 		List<Object> rs = em.createNativeQuery(q).getResultList();
 		StringBuilder sb = new StringBuilder();
 		for(Object o : rs) {

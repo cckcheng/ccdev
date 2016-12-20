@@ -32,23 +32,24 @@ import javax.persistence.EntityManager;
  * @author Colin Cheng
  */
 @Entity
-@Table(name = "user_tbl")
-@NamedQueries({@NamedQuery(name = "UserTbl.findAll", query = "SELECT u FROM UserTbl u")})
-public class UserTbl implements Serializable {
+@Table(name = "users")
+public class Users implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Basic(optional = false)
-	@Column(name = "user_id")
-	private Long userId;
+	private Long id;
 	@Column(name = "disabled")
 	private Integer disabled;
 	@Basic(optional = false)
 	@Column(name = "level")
 	private int level;
 	@Basic(optional = false)
-	@Column(name = "fullname")
-	private String fullname;
+	@Column(name = "family_name")
+	private String familyName;
+	@Basic(optional = false)
+	@Column(name = "given_name")
+	private String givinName;
 	@Column(name = "password")
 	private String password;
 	@Basic(optional = false)
@@ -56,34 +57,26 @@ public class UserTbl implements Serializable {
 	private String username;
 	@Column(name = "last_login")
 	@Temporal(TemporalType.TIMESTAMP)
-	private Date last_login;
-	@Column(name = "inused")
-	private Integer inused;
-	@JoinTable(name = "group_user", joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "user_id")}, inverseJoinColumns = {@JoinColumn(name = "group_id", referencedColumnName = "group_id")})
+	private Date lastLogin;
+	@Column(name = "temp_pass")
+	private String tempPassword;
+	@Column(name = "temppass_expire")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date temppassExpire;
+
+	@JoinTable(name = "group_user", joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")}, inverseJoinColumns = {@JoinColumn(name = "group_id", referencedColumnName = "id")})
 	@ManyToMany
-	private Collection<GroupTbl> groupTblCollection;
+	private Collection<Groups> groupCollection;
 
-
-	public UserTbl() {
+	public Users() {
 	}
 
-	public UserTbl(Long userId) {
-		this.userId = userId;
+	public Long getId() {
+		return id;
 	}
 
-	public UserTbl(Long userId, int level, String fullname, String username) {
-		this.userId = userId;
-		this.level = level;
-		this.fullname = fullname;
-		this.username = username;
-	}
-
-	public Long getUserId() {
-		return userId;
-	}
-
-	public void setUserId(Long userId) {
-		this.userId = userId;
+	public void setUserId(Long id) {
+		this.id = id;
 	}
 
 	public Integer getDisabled() {
@@ -102,14 +95,6 @@ public class UserTbl implements Serializable {
 		this.level = level;
 	}
 
-	public String getFullname() {
-		return fullname;
-	}
-
-	public void setFullname(String fullname) {
-		this.fullname = fullname;
-	}
-
 	public String getPassword() {
 		return password;
 	}
@@ -126,45 +111,69 @@ public class UserTbl implements Serializable {
 		this.username = username;
 	}
 
-	public Integer getInused() {
-		return inused;
+        public String getFamilyName() {
+            return familyName;
+        }
+
+        public void setFamilyName(String familyName) {
+            this.familyName = familyName;
+        }
+
+        public String getGivinName() {
+            return givinName;
+        }
+
+        public void setGivinName(String givinName) {
+            this.givinName = givinName;
+        }
+
+        public Date getLastLogin() {
+            return lastLogin;
+        }
+
+        public void setLastLogin(Date lastLogin) {
+            this.lastLogin = lastLogin;
+        }
+
+        public String getTempPassword() {
+            return tempPassword;
+        }
+
+        public void setTempPassword(String tempPassword) {
+            this.tempPassword = tempPassword;
+        }
+
+        public Date getTemppassExpire() {
+            return temppassExpire;
+        }
+
+        public void setTemppassExpire(Date temppassExpire) {
+            this.temppassExpire = temppassExpire;
+        }
+
+	public Collection<Groups> getGroupCollection() {
+		return groupCollection;
 	}
 
-	public void setInused(Integer inused) {
-		this.inused = inused;
-	}
-
-	public Date getLastLogin() {
-		return last_login;
-	}
-
-	public void setLastLogin(Date last_login) {
-		this.last_login = last_login;
-	}
-
-	public Collection<GroupTbl> getGroupTblCollection() {
-		return groupTblCollection;
-	}
-
-	public void setGroupTblCollection(Collection<GroupTbl> groupTblCollection) {
-		this.groupTblCollection = groupTblCollection;
+	public void setGroupCollection(Collection<Groups> groupCollection) {
+		this.groupCollection = groupCollection;
 	}
 
 	@Override
 	public int hashCode() {
 		int hash = 0;
-		hash += (userId != null ? userId.hashCode() : 0);
+		hash += (id != null ? id.hashCode() : 0);
 		return hash;
 	}
 
 	@Override
 	public boolean equals(Object object) {
 		// TODO: Warning - this method won't work in the case the id fields are not set
-		if (!(object instanceof UserTbl)) {
+		if (!(object instanceof Users)) {
 			return false;
 		}
-		UserTbl other = (UserTbl) object;
-		if ((this.userId == null && other.userId != null) || (this.userId != null && !this.userId.equals(other.userId))) {
+		Users other = (Users) object;
+		if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
 			return false;
 		}
 		return true;
@@ -172,7 +181,7 @@ public class UserTbl implements Serializable {
 
 	@Override
 	public String toString() {
-		return "com.ccdev.famtree.bean.UserTbl[userId=" + userId + "]";
+		return "com.ccdev.famtree.bean.Users[id=" + id + "]";
 	}
 	 public boolean on_using(EntityManager em) {
 		return false;

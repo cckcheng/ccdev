@@ -23,7 +23,7 @@ public class Admin implements DoAction {
 	private Random generator = new Random(System.currentTimeMillis());
 	private static final String charset = "01234567890abcdefghijklmnopqrstuvwxyz";
 
-	public String doAction(UserTbl user, HttpServletRequest request, EntityManager em) {
+	public String doAction(Users user, HttpServletRequest request, EntityManager em) {
 		String result = "";
 		String act = request.getParameter("action");
 
@@ -76,13 +76,13 @@ public class Admin implements DoAction {
 		return result;
 	}
 
-	private String getUser(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getUser(Users user, HttpServletRequest request, EntityManager em) {
 		long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("Unknow Group ID");
 		}
 
-		UserTbl u = em.find(UserTbl.class, id);
+		Users u = em.find(Users.class, id);
 		if (null == u) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
@@ -91,29 +91,30 @@ public class Admin implements DoAction {
 
 		JSONObject Obj = new JSONObject();
 
-		Obj.put("id", u.getUserId());
+		Obj.put("id", u.getId());
 		Obj.put("username", u.getUsername());
-		Obj.put("name", u.getFullname());
+		Obj.put("family_name", u.getFamilyName());
+		Obj.put("given_name", u.getGivinName());
 		Obj.put("level", u.getLevel());
 		JSONArray array_ingroups = new JSONArray();
-		Collection<GroupTbl> groups =  u.getGroupTblCollection();
-		for (GroupTbl g : groups) {
+		Collection<Groups> groups =  u.getGroupCollection();
+		for (Groups g : groups) {
 			JSONObject gObj = new JSONObject();
-			gObj.put("id", g.getGroupId());
+			gObj.put("id", g.getId());
 			gObj.put("name", g.getGroupname());
 			array_ingroups.put(gObj);
 		}
 		Obj.put("inusers", array_ingroups);
 
-		String q = "select * from group_tbl where group_id not in ";
+		String q = "select * from groups where group_id not in ";
 		q += "(select group_id from group_user where user_id=" + id + ") and (disabled = 0 or disabled is null) order by groupname";
-		Query query = em.createNativeQuery(q, GroupTbl.class);
+		Query query = em.createNativeQuery(q, Groups.class);
 		myUtil.dbg(5,q);
-		ArrayList<GroupTbl> outgroups = (ArrayList<GroupTbl>) query.getResultList();
+		ArrayList<Groups> outgroups = (ArrayList<Groups>) query.getResultList();
 		JSONArray array_outgroups = new JSONArray();
-		for (GroupTbl g : outgroups) {
+		for (Groups g : outgroups) {
 			JSONObject uObj = new JSONObject();
-			uObj.put("id", g.getGroupId());
+			uObj.put("id", g.getId());
 			uObj.put("name", g.getGroupname());
 			array_outgroups.put(uObj);
 		}
@@ -123,25 +124,25 @@ public class Admin implements DoAction {
 	}
 
 	private JSONArray getUserList(int display_disabled, int shorted, EntityManager em) {
-		String q = "select * from user_tbl where user_id>0 order by fullname";
-		Query query = em.createNativeQuery(q, UserTbl.class);
+		String q = "select * from users where user_id>0 order by fullname";
+		Query query = em.createNativeQuery(q, Users.class);
 		myUtil.dbg(5, q);
-		ArrayList<UserTbl> users = (ArrayList<UserTbl>) query.getResultList();
+		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
 		JSONArray user_list = new JSONArray();
-		for (UserTbl user : users) {
+		for (Users user : users) {
 			if ((display_disabled != 1) && (user.getDisabled()!=null) && (user.getDisabled()==1)) {
 				continue;
 			}
 			JSONObject uObj = new JSONObject();
-			uObj.put("id", user.getUserId());
+			uObj.put("id", user.getId());
 			uObj.put("username", user.getUsername());
 			if (shorted != 1) {
 				uObj.put("level", user.getLevel());
 				uObj.put("disabled", user.getDisabled()==null?0:user.getDisabled());
-				uObj.put("onused", user.on_using(em));
-				uObj.put("name", user.getFullname());
+                                uObj.put("family_name", user.getFamilyName());
+                                uObj.put("given_name", user.getGivinName());
 			}else{
-				uObj.put("name", user.getFullname() + "(" + user.getUsername() + ")");
+				uObj.put("name", user.getFamilyName() + user.getGivinName());
 			}
 			user_list.put(uObj);
 		}
@@ -149,39 +150,40 @@ public class Admin implements DoAction {
 	}
 
 	private JSONArray getUserByUsername(String username, int display_disabled, int shorted, EntityManager em) {
-		String q = "select * from user_tbl where user_id>0 and (username like '" + username + "'";
+		String q = "select * from users where user_id>0 and (username like '" + username + "'";
 		q+=" or fullname like '"+username+"') order by fullname";
-		Query query = em.createNativeQuery(q, UserTbl.class);
-		ArrayList<UserTbl> users = (ArrayList<UserTbl>) query.getResultList();
+		Query query = em.createNativeQuery(q, Users.class);
+		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
 		JSONArray user_list = new JSONArray();
-		for (UserTbl user : users) {
+		for (Users user : users) {
 			if ((display_disabled != 1) && (user.getDisabled()!=null) && (user.getDisabled()==1)) {
 				continue;
 			}
 			JSONObject uObj = new JSONObject();
-			uObj.put("id", user.getUserId());
+			uObj.put("id", user.getId());
 			uObj.put("username", user.getUsername());
 			if (shorted != 1) {
 				uObj.put("level", user.getLevel());
 				uObj.put("disabled", (user.getDisabled()==null)?0:user.getDisabled());
 				uObj.put("onused", user.on_using(em));
-				uObj.put("name", user.getFullname());
+                                uObj.put("family_name", user.getFamilyName());
+                                uObj.put("given_name", user.getGivinName());
 			}else{
-				uObj.put("name", user.getFullname() + "(" + user.getUsername() + ")");
+				uObj.put("name", user.getFamilyName() + user.getGivinName());
 			}
 			user_list.put(uObj);
 		}
 		return user_list;
 	}
 
-	private String getUserList(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getUserList(Users user, HttpServletRequest request, EntityManager em) {
 		int disabled = myUtil.IntegerWithNullToZero(request.getParameter("disabled"));
 		int shorted = myUtil.IntegerWithNullToZero(request.getParameter("shorted"));
 		JSONObject Obj = new JSONObject();
 		Obj.put("users", getUserList(disabled, shorted, em));
 		return Obj.toString();
 	}
-	private String getUserByUsername(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getUserByUsername(Users user, HttpServletRequest request, EntityManager em) {
 		int disabled = myUtil.IntegerWithNullToZero(request.getParameter("disabled"));
 		int shorted = myUtil.IntegerWithNullToZero(request.getParameter("shorted"));
 		String username = StringFunc.TrimedString(request.getParameter("username"));
@@ -190,7 +192,7 @@ public class Admin implements DoAction {
 		return Obj.toString();
 	}
 
-	private String getGroupsByUser(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getGroupsByUser(Users user, HttpServletRequest request, EntityManager em) {
 		int id = myUtil.IntegerWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("Unknow ID");
@@ -198,7 +200,7 @@ public class Admin implements DoAction {
 		JSONArray ar = new JSONArray();
 		JSONObject ret_obj = new JSONObject();
 
-		String q= "select a.group_id,a.groupname from group_tbl a join group_user b on a.group_id=b.group_id where b.user_id =" +id;
+		String q= "select a.group_id,a.groupname from groups a join group_user b on a.group_id=b.group_id where b.user_id =" +id;
 		Query query=em.createNativeQuery(q);
 		List<Object[]> platforms = em.createNativeQuery(q).getResultList();
 		for (Object[] o : platforms) {
@@ -212,7 +214,7 @@ public class Admin implements DoAction {
 	}
 
 
-	private String addUser(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String addUser(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
 		}
@@ -222,7 +224,7 @@ public class Admin implements DoAction {
 		if (username == null || username.length()==0) {
 			return myUtil.actionFail("There are no display name!", Macro.FAILCODE_IGNORE);
 		}
-		if (myUtil.exists_check("select count(*) from user_tbl where username='" + username + "'", em)) {
+		if (myUtil.exists_check("select count(*) from users where username='" + username + "'", em)) {
 			return myUtil.actionFail("login Username:" + username + " exists!", Macro.FAILCODE_IGNORE);
 		}
 		if (username.length() > Macro.MAX_STRLEN) {
@@ -231,7 +233,7 @@ public class Admin implements DoAction {
 
 		char[] spcs = {'\'', '\\', '%'};
 		if (myUtil.haveSpecialChar(username, spcs) != 0) {
-			return myUtil.actionFail("UserTbl name hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
+			return myUtil.actionFail("Username hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
 		}
 
 		if (name == null || name.length()==0) {
@@ -263,7 +265,7 @@ public class Admin implements DoAction {
 
 		}
 
-		String q="insert into user_tbl(username, password, fullname, level, inused, disabled)" +
+		String q="insert into users(username, password, fullname, level, inused, disabled)" +
 				" values('" + username + "',MD5('" + password + "'),'" + name + "'," + level + "," + inused + ",0)";
 		if(!myUtil.execDBUpdate(q, em)) {
 			return myUtil.actionFail(Macro.ERR_DB_UPDATE);
@@ -282,7 +284,7 @@ public class Admin implements DoAction {
 
 		String groups = request.getParameter("groups");
 		if (groups != null && (!groups.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select " + new_id + ", group_id  from group_tbl where group_id in ("+groups+")";
+			q= "insert into group_user (user_id,group_id) select " + new_id + ", group_id  from groups where group_id in ("+groups+")";
 			myUtil.dbg(3, q);
 			qy =  em.createNativeQuery(q);
 			qy.executeUpdate();
@@ -294,7 +296,7 @@ public class Admin implements DoAction {
 		return myUtil.actionSuccess();
 	}
 
-	private String editUser(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String editUser(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
 		}
@@ -314,7 +316,7 @@ public class Admin implements DoAction {
 				return myUtil.actionFail("Permission deny to set administrator!", Macro.FAILCODE_IGNORE);
 		}
 
-		UserTbl u = em.find(UserTbl.class, id);
+		Users u = em.find(Users.class, id);
 		if (null == u) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
@@ -322,24 +324,30 @@ public class Admin implements DoAction {
 		char[] spcs = {'\'', '\\', '%'};
 
 		if (username != null && username.length()>0) {
-			if (myUtil.exists_check("Select count(*) from user_tbl where username='" + username + "' and user_id!=" + id, em)) {
+			if (myUtil.exists_check("Select count(*) from users where username='" + username + "' and user_id!=" + id, em)) {
 				return myUtil.actionFail("Login username:" + username + " exists!", Macro.FAILCODE_IGNORE);
 			}
 
 			if (myUtil.haveSpecialChar(username, spcs) != 0) {
-				return myUtil.actionFail("UserTbl name has special character[',%,\\]!", Macro.FAILCODE_IGNORE);
+				return myUtil.actionFail("username has special character[',%,\\]!", Macro.FAILCODE_IGNORE);
 			}
 			u.setUsername(username);
 		}
 
-		String name = StringFunc.TrimedString(request.getParameter("name"));
-
-		if (name != null && name.length()>0) {
-
-			if (myUtil.haveSpecialChar(name, spcs) != 0) {
-				return myUtil.actionFail("Name has special character[',%,\\]!", Macro.FAILCODE_IGNORE);
+		String familyName = StringFunc.TrimedString(request.getParameter("familyName"));
+		if (familyName != null && !familyName.isEmpty()) {
+			if (myUtil.haveSpecialChar(familyName, spcs) != 0) {
+				return myUtil.actionFail("familyName has special character[',%,\\]!", Macro.FAILCODE_IGNORE);
 			}
-			u.setFullname(name);
+			u.setFamilyName(familyName);
+		}
+
+		String givenName = StringFunc.TrimedString(request.getParameter("givenName"));
+		if (givenName != null && !givenName.isEmpty()) {
+			if (myUtil.haveSpecialChar(givenName, spcs) != 0) {
+				return myUtil.actionFail("givenName has special character[',%,\\]!", Macro.FAILCODE_IGNORE);
+			}
+			u.setGivinName(givenName);
 		}
 
 		if (level > 0) {
@@ -364,19 +372,19 @@ public class Admin implements DoAction {
 
 		String groups = request.getParameter("groups");
 		if (groups != null && (!groups.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select " + id + ", group_id  from group_tbl where group_id in ("+groups+")";
+			q= "insert into group_user (user_id,group_id) select " + id + ", group_id  from groups where group_id in ("+groups+")";
 			myUtil.dbg(3, q);
 			query =  em.createNativeQuery(q);
 			query.executeUpdate();
 		}
-		String dowhat = "edit User:" + name+" level:"+level;
+		String dowhat = "edit User:" + username +" level:"+level;
 		em.merge(u);
 		myUtil.audit(user, Macro.ACT_ADMIN, 0L, dowhat, em);
 
 		return myUtil.actionSuccess();
 	}
 
-	private String removeUser(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String removeUser(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
 		}
@@ -384,7 +392,7 @@ public class Admin implements DoAction {
 		if (id == 0) {
 			return myUtil.actionFail("missing id");
 		}
-		UserTbl u = em.find(UserTbl.class, id);
+		Users u = em.find(Users.class, id);
 		if (null == u) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
@@ -396,25 +404,24 @@ public class Admin implements DoAction {
 		return myUtil.actionSuccess();
 	}
 
-	private String changePassword(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String changePassword(Users user, HttpServletRequest request, EntityManager em) {
 
-		Long id = user.getUserId();
+		Long id = user.getId();
 		myUtil.dbg(5, "" +id);
 
 		String oldPass =request.getParameter("oldpassword");
 		if (oldPass != null) {
-			String q = "select count(*) from user_tbl where password = MD5('" + oldPass + "') and user_id=" +id;
+			String q = "select count(*) from users where password = MD5('" + oldPass + "') and user_id=" +id;
 			if(!myUtil.exists_check(q, em)) {
 				return myUtil.actionFail("Password not right!", Macro.FAILCODE_IGNORE);
 			}
 		}
 
 		String newPass = request.getParameter("newpassword");
-		String q = "update user_tbl set password=MD5('" + newPass + "'),inused=0 where user_id=" + id;
-		if(user.getInused() < 0) user.setInused(0);
+		String q = "update users set password=MD5('" + newPass + "'),inused=0 where user_id=" + id;
 		return myUtil.doDBUpdate(q, em);
 	}
-	private String resetPassword(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String resetPassword(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
 		}
@@ -422,19 +429,19 @@ public class Admin implements DoAction {
 		if (id == 0) {
 			return myUtil.actionFail("missing id");
 		}
-		UserTbl u = em.find(UserTbl.class, id);
+		Users u = em.find(Users.class, id);
 		if (null == u) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
 		String username = u.getUsername();
-		String name = u.getFullname();
+		String name = u.getFamilyName() + u.getGivinName();
 		String password = generatePassword(8);
 
 		int inused = -1;
 		if(username.indexOf("@") < 0){
 			inused = 0;
 		}
-		String q = "update user_tbl set password=MD5('" + password + "'),inused=" + inused + " ,last_login=null" +" where user_id=" + id;
+		String q = "update users set password=MD5('" + password + "'),inused=" + inused + " ,last_login=null" +" where user_id=" + id;
 		if(!myUtil.execDBUpdate(q, em)) {
 			return myUtil.actionFail(Macro.ERR_DB_UPDATE);
 		}
@@ -486,14 +493,14 @@ public class Admin implements DoAction {
 		}
 		return sb.toString();
 	}
-	private boolean have_permission(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private boolean have_permission(Users user, HttpServletRequest request, EntityManager em) {
 		if (user.getLevel() == Macro.ADMIN_LEVEL) {
 			return true;
 		}
-		UserTbl usr = em.find(UserTbl.class, user.getUserId());
+		Users usr = em.find(Users.class, user.getId());
 
-		Collection<GroupTbl> groups =  usr.getGroupTblCollection();
-		for (GroupTbl g : groups) {
+		Collection<Groups> groups =  usr.getGroupCollection();
+		for (Groups g : groups) {
 			if ((g.getUserMask() & Macro.MODULE_ADMIN)>0) return true;
 		}
 
@@ -502,18 +509,18 @@ public class Admin implements DoAction {
 
 	private JSONArray getGroups(int display_disabled, int shorted, EntityManager em) {
 
-		String q = "select * from group_tbl order by groupname";
+		String q = "select * from groups order by groupname";
                 myUtil.dbg(5, q);
-		Query query = em.createNativeQuery(q, GroupTbl.class);
-		ArrayList<GroupTbl> outgroups = (ArrayList<GroupTbl>) query.getResultList();
+		Query query = em.createNativeQuery(q, Groups.class);
+		ArrayList<Groups> outgroups = (ArrayList<Groups>) query.getResultList();
 		JSONArray group_list = new JSONArray();
-		for (GroupTbl group : outgroups) {
+		for (Groups group : outgroups) {
 			if ((display_disabled != 1) && (group.getDisabled()==1)) {
 				continue;
 			}
 			JSONObject grpObj = new JSONObject();
 			String gname = group.getGroupname();
-			grpObj.put("id", group.getGroupId());
+			grpObj.put("id", group.getId());
 			grpObj.put("name", gname);
 			if (shorted != 1) {
 				grpObj.put("descript", group.getDescription());
@@ -528,7 +535,7 @@ public class Admin implements DoAction {
 		return group_list;
 	}
 
-	private String getGroupList(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getGroupList(Users user, HttpServletRequest request, EntityManager em) {
 		int disabled = myUtil.IntegerWithNullToZero(request.getParameter("disabled"));
 		int shorted = myUtil.IntegerWithNullToZero(request.getParameter("shorted"));
 		JSONObject Obj = new JSONObject();
@@ -537,7 +544,7 @@ public class Admin implements DoAction {
 	}
 
 
-	private String getUsersByGroup(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getUsersByGroup(Users user, HttpServletRequest request, EntityManager em) {
 		int id = myUtil.IntegerWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("Unknow ID");
@@ -545,7 +552,7 @@ public class Admin implements DoAction {
 		JSONArray ar = new JSONArray();
 		JSONObject ret_obj = new JSONObject();
 
-		String q= "select a.user_id,a.username from user_tbl a join group_user b on a.user_id=b.user_id where b.group_id =" +id;
+		String q= "select a.user_id,a.username from users a join group_user b on a.user_id=b.user_id where b.group_id =" +id;
 		Query query=em.createNativeQuery(q);
 		//List<Object[]> platforms = em.createNativeQuery(q).getResultList();
 		List<Object[]> platforms = query.getResultList();
@@ -560,13 +567,13 @@ public class Admin implements DoAction {
 	}
 
 
-	private String getGroup(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String getGroup(Users user, HttpServletRequest request, EntityManager em) {
 		long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("Unknow Group ID");
 		}
 
-		GroupTbl g = em.find(GroupTbl.class, id);
+		Groups g = em.find(Groups.class, id);
 		if (null == g) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
@@ -576,31 +583,31 @@ public class Admin implements DoAction {
 
 		JSONObject Obj = new JSONObject();
 
-		Obj.put("id", g.getGroupId());
+		Obj.put("id", g.getId());
 		Obj.put("name", g.getDescription());
 		Obj.put("description", g.getDescription());
 		JSONArray array_inusers = new JSONArray();
-		String q = "select a.* from user_tbl a join group_user b on a.user_id= b.user_id where b.group_id ="+id;
-		Query query = em.createNativeQuery(q, UserTbl.class);
-		ArrayList<UserTbl> users = (ArrayList<UserTbl>) query.getResultList();
-		for (UserTbl u : users) {
+		String q = "select a.* from users a join group_user b on a.user_id= b.user_id where b.group_id ="+id;
+		Query query = em.createNativeQuery(q, Users.class);
+		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
+		for (Users u : users) {
 			JSONObject uObj = new JSONObject();
-			uObj.put("id", u.getUserId());
-			uObj.put("name", u.getFullname() + " (" + u.getUsername() + ")");
+			uObj.put("id", u.getId());
+			uObj.put("name", u.getFamilyName() + u.getGivinName());
 			array_inusers.put(uObj);
 		}
 		Obj.put("inusers", array_inusers);
 
-		q = "select * from user_tbl where user_id not in ";
+		q = "select * from users where user_id not in ";
 		q += "(select user_id from group_user where group_id=" + id + ") and (disabled=0 or disabled is null) order by fullname";
 		myUtil.dbg(3, q);
-		query = em.createNativeQuery(q, UserTbl.class);
-		ArrayList<UserTbl> outusers = (ArrayList<UserTbl>) query.getResultList();
+		query = em.createNativeQuery(q, Users.class);
+		ArrayList<Users> outusers = (ArrayList<Users>) query.getResultList();
 		JSONArray array_outusers = new JSONArray();
-		for (UserTbl u : outusers) {
+		for (Users u : outusers) {
 			JSONObject uObj = new JSONObject();
-			uObj.put("id", u.getUserId());
-			uObj.put("name", u.getFullname() + " (" + u.getUsername() + ")");
+			uObj.put("id", u.getId());
+			uObj.put("name", u.getFamilyName() + u.getGivinName());
 			array_outusers.put(uObj);
 		}
 		Obj.put("outusers", array_outusers);
@@ -608,7 +615,7 @@ public class Admin implements DoAction {
 		return result1.toString();
 	}
 
-	private String addGroup(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String addGroup(Users user, HttpServletRequest request, EntityManager em) {
 		String name = StringFunc.TrimedString(request.getParameter("name"));
 		if (name == null || name.length()==0) {
 			return myUtil.actionFail("There are no display name!");
@@ -623,7 +630,7 @@ public class Admin implements DoAction {
 		}
 
 
-		if (myUtil.exists_check("select count(*) from group_tbl where groupname='" + name + "'", em)) {
+		if (myUtil.exists_check("select count(*) from groups where groupname='" + name + "'", em)) {
 			return myUtil.actionFail("name:" + name + " exists!", Macro.FAILCODE_IGNORE);
 		}
 
@@ -636,11 +643,11 @@ public class Admin implements DoAction {
 			return myUtil.actionFail("The group descript maxium length is " + Macro.MAX_STRLEN);
 		}
 
-		GroupTbl g = new GroupTbl(name.trim(), descript);
+		Groups g = new Groups(name.trim(), descript);
 
 		em.persist(g);
 
-		long g_id = g.getGroupId();
+		long g_id = g.getId();
 
 		int manager_mask = myUtil.IntegerNullToMinusOne(request.getParameter("manager_mask"));
 		if (manager_mask>=0) g.setManagerMask(manager_mask);
@@ -650,7 +657,7 @@ public class Admin implements DoAction {
 
 		String users = request.getParameter("users");
 		if (users != null && (!users.equals(""))) {
-			String q= "insert into group_user (user_id,group_id) select user_id,"+g_id+" from user_tbl where user_id in ("+users+")";
+			String q= "insert into group_user (user_id,group_id) select user_id,"+g_id+" from users where user_id in ("+users+")";
 			myUtil.dbg(3, q);
 			Query query =  em.createNativeQuery(q);
 			query.executeUpdate();
@@ -667,7 +674,7 @@ public class Admin implements DoAction {
 
 	}
 
-	private String editGroup(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String editGroup(Users user, HttpServletRequest request, EntityManager em) {
 		Long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		String name = StringFunc.TrimedString(request.getParameter("name"));
 		String desc = request.getParameter("descript");
@@ -679,7 +686,7 @@ public class Admin implements DoAction {
 		}
 
 
-		GroupTbl g = em.find(GroupTbl.class, id);
+		Groups g = em.find(Groups.class, id);
 		if (null == g) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
@@ -695,7 +702,7 @@ public class Admin implements DoAction {
 			if (myUtil.haveSpecialChar(name, spcs) != 0) {
 				return myUtil.actionFail("Group name hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
 			}
-			if (myUtil.exists_check("select count(*) from group_tbl where groupname='" + name + "' and group_id!=" + id, em)) {
+			if (myUtil.exists_check("select count(*) from groups where groupname='" + name + "' and group_id!=" + id, em)) {
 				return myUtil.actionFail("Group name:" + name + " exists!", Macro.FAILCODE_IGNORE);
 			}
 			if (name.length() > Macro.MAX_STRLEN) {
@@ -720,7 +727,7 @@ public class Admin implements DoAction {
 
 		String users = request.getParameter("users");
 		if (users != null && (!users.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select user_id,"+id+" from user_tbl where user_id in ("+users+")";
+			q= "insert into group_user (user_id,group_id) select user_id,"+id+" from users where user_id in ("+users+")";
 			myUtil.dbg(3, q);
 			query =  em.createNativeQuery(q);
 			query.executeUpdate();
@@ -732,13 +739,13 @@ public class Admin implements DoAction {
 		return myUtil.actionSuccess();
 	}
 
-	private String removeGroup(UserTbl user, HttpServletRequest request, EntityManager em) {
+	private String removeGroup(Users user, HttpServletRequest request, EntityManager em) {
 
 		Long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("mission id");
 		}
-		GroupTbl g = em.find(GroupTbl.class, id);
+		Groups g = em.find(Groups.class, id);
 		if (null == g) {
 			return myUtil.actionFail("Unknow id:" + id);
 		}
