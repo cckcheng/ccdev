@@ -79,12 +79,12 @@ public class Admin implements DoAction {
 	private String getUser(Users user, HttpServletRequest request, EntityManager em) {
 		long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
-			return myUtil.actionFail("Unknow Group ID");
+			return myUtil.actionFail("Unknown ID");
 		}
 
 		Users u = em.find(Users.class, id);
 		if (null == u) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 		JSONObject result1 = new JSONObject();
 		result1.put("success", "true");
@@ -106,7 +106,7 @@ public class Admin implements DoAction {
 		}
 		Obj.put("inusers", array_ingroups);
 
-		String q = "select * from groups where group_id not in ";
+		String q = "select * from groups where id not in ";
 		q += "(select group_id from group_user where user_id=" + id + ") and (disabled = 0 or disabled is null) order by groupname";
 		Query query = em.createNativeQuery(q, Groups.class);
 		myUtil.dbg(5,q);
@@ -124,7 +124,7 @@ public class Admin implements DoAction {
 	}
 
 	private JSONArray getUserList(int display_disabled, int shorted, EntityManager em) {
-		String q = "select * from users where user_id>0 order by fullname";
+		String q = "select * from users where id>0 order by family_name,given_name";
 		Query query = em.createNativeQuery(q, Users.class);
 		myUtil.dbg(5, q);
 		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
@@ -150,8 +150,8 @@ public class Admin implements DoAction {
 	}
 
 	private JSONArray getUserByUsername(String username, int display_disabled, int shorted, EntityManager em) {
-		String q = "select * from users where user_id>0 and (username like '" + username + "'";
-		q+=" or fullname like '"+username+"') order by fullname";
+		String q = "select * from users where id>0 and (username like '" + username + "'";
+		q+=" or given_name like '"+username+"') order by family_name,given_name";
 		Query query = em.createNativeQuery(q, Users.class);
 		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
 		JSONArray user_list = new JSONArray();
@@ -195,7 +195,7 @@ public class Admin implements DoAction {
 	private String getGroupsByUser(Users user, HttpServletRequest request, EntityManager em) {
 		int id = myUtil.IntegerWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
-			return myUtil.actionFail("Unknow ID");
+			return myUtil.actionFail("Unknown ID");
 		}
 		JSONArray ar = new JSONArray();
 		JSONObject ret_obj = new JSONObject();
@@ -219,7 +219,8 @@ public class Admin implements DoAction {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
 		}
 		String username = StringFunc.TrimedString(request.getParameter("username"));
-		String name = StringFunc.TrimedString(request.getParameter("name"));
+		String familyName = StringFunc.TrimedString(request.getParameter("familyName"));
+		String givenName = StringFunc.TrimedString(request.getParameter("givenName"));
 
 		if (username == null || username.length()==0) {
 			return myUtil.actionFail("There are no display name!", Macro.FAILCODE_IGNORE);
@@ -236,13 +237,23 @@ public class Admin implements DoAction {
 			return myUtil.actionFail("Username hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
 		}
 
-		if (name == null || name.length()==0) {
-			return myUtil.actionFail("There are no login name!");
+		if (familyName == null || familyName.length()==0) {
+			return myUtil.actionFail("There are no family name!");
 		}
-		if (name.length() > Macro.MAX_STRLEN) {
+		if (familyName.length() > Macro.MAX_STRLEN) {
 			return myUtil.actionFail("There name maxium length is " + Macro.MAX_STRLEN);
 		}
-		if (myUtil.haveSpecialChar(name, spcs) != 0) {
+		if (myUtil.haveSpecialChar(familyName, spcs) != 0) {
+			return myUtil.actionFail("Name hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
+		}
+
+		if (givenName == null || givenName.length()==0) {
+			return myUtil.actionFail("There are no family name!");
+		}
+		if (givenName.length() > Macro.MAX_STRLEN) {
+			return myUtil.actionFail("There name maxium length is " + Macro.MAX_STRLEN);
+		}
+		if (myUtil.haveSpecialChar(givenName, spcs) != 0) {
 			return myUtil.actionFail("Name hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
 		}
 
@@ -256,17 +267,8 @@ public class Admin implements DoAction {
 
 		String password = generatePassword(8);
 
-		int inused = 0;
-		if(username.indexOf("@") >= 0){
-			inused = -1;
-		} else {
-			if (!sendNewFortineterEmail( username ,  name))
-				return myUtil.actionFail("Username Error!", Macro.FAILCODE_IGNORE);
-
-		}
-
-		String q="insert into users(username, password, fullname, level, inused, disabled)" +
-				" values('" + username + "',MD5('" + password + "'),'" + name + "'," + level + "," + inused + ",0)";
+		String q="insert into users(username, password, family_name, given_name, level, disabled)" +
+				" values('" + username + "',MD5('" + password + "'),'" + familyName + "','" + givenName + "'," + level + ",0)";
 		if(!myUtil.execDBUpdate(q, em)) {
 			return myUtil.actionFail(Macro.ERR_DB_UPDATE);
 		}
@@ -277,7 +279,7 @@ public class Admin implements DoAction {
 		myUtil.dbg(5, "new_id=" + new_id);
 
 		if(username.indexOf("@") > 0){
-			if(!this.sendWelcomeEmail(request, username, name, password)){
+			if(!this.sendWelcomeEmail(request, username, familyName + givenName, password)){
 				return myUtil.actionFail(Macro.ERR_SEND_EMAIL);
 			}
 		}
@@ -290,7 +292,7 @@ public class Admin implements DoAction {
 			qy.executeUpdate();
 		}
 
-		String dowhat = "add User:" + name+"level:"+level;
+		String dowhat = "add User:" + username +"level:"+level;
 		myUtil.audit(user, Macro.ACT_ADMIN, 0L, dowhat, em);
 
 		return myUtil.actionSuccess();
@@ -318,13 +320,13 @@ public class Admin implements DoAction {
 
 		Users u = em.find(Users.class, id);
 		if (null == u) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 
 		char[] spcs = {'\'', '\\', '%'};
 
 		if (username != null && username.length()>0) {
-			if (myUtil.exists_check("Select count(*) from users where username='" + username + "' and user_id!=" + id, em)) {
+			if (myUtil.exists_check("Select count(*) from users where username='" + username + "' and id!=" + id, em)) {
 				return myUtil.actionFail("Login username:" + username + " exists!", Macro.FAILCODE_IGNORE);
 			}
 
@@ -394,7 +396,7 @@ public class Admin implements DoAction {
 		}
 		Users u = em.find(Users.class, id);
 		if (null == u) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 		if (u.on_using(em)) return myUtil.actionFail("The user is used by other object", Macro.FAILCODE_IGNORE);
 		String dowhat = "remove User:" + u.getUsername();
@@ -411,14 +413,14 @@ public class Admin implements DoAction {
 
 		String oldPass =request.getParameter("oldpassword");
 		if (oldPass != null) {
-			String q = "select count(*) from users where password = MD5('" + oldPass + "') and user_id=" +id;
+			String q = "select count(*) from users where password = MD5('" + oldPass + "') and id=" +id;
 			if(!myUtil.exists_check(q, em)) {
 				return myUtil.actionFail("Password not right!", Macro.FAILCODE_IGNORE);
 			}
 		}
 
 		String newPass = request.getParameter("newpassword");
-		String q = "update users set password=MD5('" + newPass + "'),inused=0 where user_id=" + id;
+		String q = "update users set password=MD5('" + newPass + "'),inused=0 where id=" + id;
 		return myUtil.doDBUpdate(q, em);
 	}
 	private String resetPassword(Users user, HttpServletRequest request, EntityManager em) {
@@ -431,7 +433,7 @@ public class Admin implements DoAction {
 		}
 		Users u = em.find(Users.class, id);
 		if (null == u) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 		String username = u.getUsername();
 		String name = u.getFamilyName() + u.getGivinName();
@@ -441,7 +443,7 @@ public class Admin implements DoAction {
 		if(username.indexOf("@") < 0){
 			inused = 0;
 		}
-		String q = "update users set password=MD5('" + password + "'),inused=" + inused + " ,last_login=null" +" where user_id=" + id;
+		String q = "update users set password=MD5('" + password + "'),inused=" + inused + " ,last_login=null" +" where id=" + id;
 		if(!myUtil.execDBUpdate(q, em)) {
 			return myUtil.actionFail(Macro.ERR_DB_UPDATE);
 		}
@@ -547,12 +549,12 @@ public class Admin implements DoAction {
 	private String getUsersByGroup(Users user, HttpServletRequest request, EntityManager em) {
 		int id = myUtil.IntegerWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
-			return myUtil.actionFail("Unknow ID");
+			return myUtil.actionFail("Unknown ID");
 		}
 		JSONArray ar = new JSONArray();
 		JSONObject ret_obj = new JSONObject();
 
-		String q= "select a.user_id,a.username from users a join group_user b on a.user_id=b.user_id where b.group_id =" +id;
+		String q= "select a.id,a.username from users a join group_user b on a.id=b.user_id where b.group_id =" +id;
 		Query query=em.createNativeQuery(q);
 		//List<Object[]> platforms = em.createNativeQuery(q).getResultList();
 		List<Object[]> platforms = query.getResultList();
@@ -570,12 +572,12 @@ public class Admin implements DoAction {
 	private String getGroup(Users user, HttpServletRequest request, EntityManager em) {
 		long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
-			return myUtil.actionFail("Unknow Group ID");
+			return myUtil.actionFail("Unknown Group ID");
 		}
 
 		Groups g = em.find(Groups.class, id);
 		if (null == g) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 
 		JSONObject result1 = new JSONObject();
@@ -587,7 +589,7 @@ public class Admin implements DoAction {
 		Obj.put("name", g.getDescription());
 		Obj.put("description", g.getDescription());
 		JSONArray array_inusers = new JSONArray();
-		String q = "select a.* from users a join group_user b on a.user_id= b.user_id where b.group_id ="+id;
+		String q = "select a.* from users a join group_user b on a.id= b.user_id where b.group_id ="+id;
 		Query query = em.createNativeQuery(q, Users.class);
 		ArrayList<Users> users = (ArrayList<Users>) query.getResultList();
 		for (Users u : users) {
@@ -598,7 +600,7 @@ public class Admin implements DoAction {
 		}
 		Obj.put("inusers", array_inusers);
 
-		q = "select * from users where user_id not in ";
+		q = "select * from users where id not in ";
 		q += "(select user_id from group_user where group_id=" + id + ") and (disabled=0 or disabled is null) order by fullname";
 		myUtil.dbg(3, q);
 		query = em.createNativeQuery(q, Users.class);
@@ -657,7 +659,7 @@ public class Admin implements DoAction {
 
 		String users = request.getParameter("users");
 		if (users != null && (!users.equals(""))) {
-			String q= "insert into group_user (user_id,group_id) select user_id,"+g_id+" from users where user_id in ("+users+")";
+			String q= "insert into group_user (user_id,group_id) select id,"+g_id+" from users where id in ("+users+")";
 			myUtil.dbg(3, q);
 			Query query =  em.createNativeQuery(q);
 			query.executeUpdate();
@@ -682,13 +684,13 @@ public class Admin implements DoAction {
 		int user_mask = myUtil.IntegerNullToMinusOne(request.getParameter("user_mask"));
 		int manager_mask = myUtil.IntegerNullToMinusOne(request.getParameter("manager_mask"));
 		if (id == 0) {
-			return myUtil.actionFail("Unknow Group ID");
+			return myUtil.actionFail("Unknown Group ID");
 		}
 
 
 		Groups g = em.find(Groups.class, id);
 		if (null == g) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 
 
@@ -727,7 +729,7 @@ public class Admin implements DoAction {
 
 		String users = request.getParameter("users");
 		if (users != null && (!users.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select user_id,"+id+" from users where user_id in ("+users+")";
+			q= "insert into group_user (user_id,group_id) select id,"+id+" from users where id in ("+users+")";
 			myUtil.dbg(3, q);
 			query =  em.createNativeQuery(q);
 			query.executeUpdate();
@@ -747,7 +749,7 @@ public class Admin implements DoAction {
 		}
 		Groups g = em.find(Groups.class, id);
 		if (null == g) {
-			return myUtil.actionFail("Unknow id:" + id);
+			return myUtil.actionFail("Unknown id:" + id);
 		}
 		if (g.on_using(em)) return myUtil.actionFail("Group is used by other object", Macro.FAILCODE_IGNORE);
 		if (!have_permission(user, request, em)) {
