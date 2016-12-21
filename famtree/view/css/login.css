@@ -6,10 +6,10 @@ body {
 	border:1px solid #eee;
 }
 #login-logo .x-plain-body {
-	background:#f9f9f9 url(../images/fortinet_logo.gif) no-repeat center center;
+	background:#f9f9f9 url(../images/ccdev_logo.gif) no-repeat center center;
 }
 #top-logo .x-plain-body {
-	background: url(../images/fortinet_logo.gif) no-repeat left center;
+	background: url(../images/ccdev_logo.gif) no-repeat left center;
 }
 #login-form .x-plain-body {
 	background:#f9f9f9 none;
