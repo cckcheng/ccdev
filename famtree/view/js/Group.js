@@ -225,18 +225,11 @@ famtree.editGroup = function (which, ds, record) {
             {name: 'name', type: 'string'}
         ]
     });
-    var module_ds = new Ext.data.SimpleStore({
-        id: 'id',
-        fields: ["id", "name"],
-        data: [
-            [0x1, 'View Family Tree']
-                    , [0x2, 'Build Family Tree']
-                    , [0x4, 'Print Family Tree']
-        ]
-    });
+
+    var module_ds = famtree.global.dsModules;       
     var mask = new Ext.ux.form.LovCombo({
         anchor: '95%',
-        name: 'user_mask',
+        hiddenName: 'user_mask',
         hideLabel: false,
         fieldLabel: 'Permission Mask',
         store: module_ds,
@@ -250,6 +243,7 @@ famtree.editGroup = function (which, ds, record) {
             'select': changeUserManager
         }
     });
+
     var statusLabel = new Ext.form.Label({
         html: '<span style="font-size:small;">Disabled:&nbsp;&nbsp;</span>'
     });
@@ -347,30 +341,14 @@ famtree.editGroup = function (which, ds, record) {
                 famtree.handle_server_exception
                 );
     } else {
-
         var t_groupname = record.get('name');
         var t_descript = record.get('descript');
         var group_id = record.get('id');
         var tstatus = record.get('disabled');
         var tmask = record.get('user_mask');
         var tmanager = record.get('manager_mask');
-        if (tmask > 0 || tmanager > 0) {
-            //var parr = [0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x800];
-            var parr = [0x1, 0x2, 0x4, 0x8, 0x20, 0x40, 0x800];
-            var res = '';
-            for (var pidx = 0; pidx < 7; pidx++) {
-                if (parr[pidx] & tmask) {
-                    res = res + "," + parr[pidx];
-                }
-                if (parr[pidx] & tmanager) {
-                    res = res + "," + (parr[pidx] + 0x1000);
-                }
-            }
-            if (res != '') {
-                res = res.substring(1);
-                mask.setValue(res);
-            }
-        }
+        mask.setValue(tmask);
+
         groupname.setValue(t_groupname);
         descript.setValue(t_descript);
         if (tstatus == 1)
@@ -412,6 +390,7 @@ famtree.editGroup = function (which, ds, record) {
         outuserds.loadData(json.group.outusers);
         inuserds.loadData(json.group.inusers);
     }
+
     function handle_newuserload(scope, json) {
         outuserds.loadData(json.users);
     }
