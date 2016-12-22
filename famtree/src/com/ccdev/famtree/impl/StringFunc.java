@@ -33,12 +33,6 @@ public class StringFunc {
 		return src.replaceAll(a, a + a);
 	}
 
-	static boolean invalidSN(String s, String pattern) {
-		if(s.length() != Macro.MAX_SNLEN) return true;
-		return !s.matches(pattern);
-//		return false;
-	}
-
 	/**
 	 * retrieveInteger
 	 *		get the number from a string
