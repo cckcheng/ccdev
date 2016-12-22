@@ -1,26 +1,14 @@
 package com.ccdev.famtree;
 
 public class Macro {
-	static final public String SYSTEM_NAME = "Fortinet Sample";
-	static final public String PUBLIC_DOMAIN = "https://vendor.ccdev.com/portal";
+	static final public String SYSTEM_NAME = "Family Tree Builder";
+	static final public String PUBLIC_DOMAIN = "https://famtree.ccdev.app/famtree";
 
 	static public final String ALERT_PREFIX = Macro.SYSTEM_NAME + " Alert - ";
 
 	// define module name and mask associated to Group Priviledge mask
-	static final public String MODULE_NAME_REQUEST = "Request";
-	static final public int MODULE_REQUEST = 0x1;
-	static final public String MODULE_NAME_UPGRADE = "Upgrade";
-	static final public int MODULE_UPGRADE = 0x2;
-	static final public String MODULE_NAME_REWORK = "Rework";
-	static final public int MODULE_REWORK = 0x4;
-	static final public String MODULE_NAME_PLATFORM = "Platform";
-	static final public int MODULE_PLATFORM = 0x8;
-	static final public String MODULE_NAME_CUSTOM_SEARCH = "CustomSearch";
-	static final public int MODULE_CUSTOM_SEARCH = 0x10;
-	static final public String MODULE_NAME_PO = "PO";
-	static final public int MODULE_PO = 0x20;
-	static final public String MODULE_NAME_NPI = "NPI";
-	static final public int MODULE_NPI = 0x40;
+	static final public String MODULE_NAME_BUILDER = "builder";
+	static final public int MODULE_BUILDER = 0x1;
 
 	static final public String MODULE_NAME_ADMIN = "Admin";
 	static final public int MODULE_ADMIN = 0x800;
@@ -40,29 +28,16 @@ public class Macro {
 	static final public int AUTH_LDAP = 1;
 	static final public int AUTH_LOCAL = 0;
 
-	static public final String EMAIL_AFFIX = "@ccdev.com";
+	static public final String EMAIL_AFFIX = "@ccdev.app";
 
 	static final public int SUCCESS = 0;
 
 	static final public String REPORT_BUG = "Please report this problem to developers";
 
 	static final public int MAX_NAMELEN = 32;
-	static final public int MAX_SNLEN = 16;
 	static final public int MAX_SHORTSTRLEN = 47;
-	static final public int MAX_COMMENT = 200; // task comment length
-	static final public int MAX_VALUE_LEN = 2048;	// max length of string value
+	static final public int MAX_VALUE_LEN = 2048;
 	static final public int MAX_STRLEN = 255;
-	static final public int OSVER_STRLEN = 64;
-	static final public int HQIP_STRLEN = 64;
-	static final public int PN_STRLEN = 16;
-	static final public int TESTPKG_STRLEN = 64;
-	static final public int DBNAME_STRLEN = 10;
-	static final public int BIOS_STRLEN = 8;
-	static final public int HW_STRLEN = 16;
-	static final public int PCBASSY_STRLEN = 20;
-	static final public int WO_STRLEN = 20;
-	static final public int PO_STRLEN = 20;
-	static final public int BUILDNUMBER_STRLEN = 6;
 
 	static final public int ACT_ADMIN = 2;
 
@@ -75,7 +50,6 @@ public class Macro {
 
 	// Error codes of common
 	static final public int ERR_PERMISSION_DENY = -1;
-	static final public int ERR_PATH_LENGTH_OVERLIMIT = -2;
 	static final public int ERR_NAME_LENGTH_OVERLIMIT = -3;
 	static final public int ERR_NAME_INVALID_CHARACTOR = -4;
 	static final public int ERR_OBJECT_NOT_FOUND = -5;
@@ -90,18 +64,8 @@ public class Macro {
 
 	static final public int ERR_SEND_MESSAGE = -201;
 	final public static int ERR_SEND_EMAIL = -202;
-	final public static int ERR_LOST_MANUFACTURER = -203;
-
-	final public static int ERR_PARAM_BATCHUPGRADE = -300;
-	final public static int ERR_UPLOAD_REQUIRED = -301;
-	final public static int ERR_ROM_VERSION_REQUIRED = -302;
-	final public static int ERR_ROM_VERSION_NOMATCH = -303;
 
 	final public static int MAX_DISPLAY_LIMIT = 1048576; // 1M
-	static final public int SN_MASK_LENGTH = 6;
-	static final public int SN_SEQUENCE_LENGTH = 5;
-	static final public int SN_YEAR_IDX = 9;
-	static final public int SN_YEAR_LENGTH = 2;
 
 	public static final String ErrorMessage(int err_code) {
 		String msg = "";
@@ -139,20 +103,8 @@ public class Macro {
 			case Macro.ERR_NAME_INVALID_CHARACTOR:
 				msg = "The name connot contain charactor /, \\ or '.";
 				break;
-			case Macro.ERR_LOST_MANUFACTURER:
-				msg = "External user manufacture field empty.";
-				break;
-			case Macro.ERR_UPLOAD_REQUIRED:
-				msg = "Please upload the image file.";
-				break;
-			case Macro.ERR_ROM_VERSION_REQUIRED:
-				msg = "Please input rom version.";
-				break;
 			case Macro.ERR_OBJECT_NOT_FOUND:
 				msg = "Related object NOT found.";
-				break;
-			case Macro.ERR_ROM_VERSION_NOMATCH:
-				msg = "Rom version not match. ";
 				break;
 
 			default:

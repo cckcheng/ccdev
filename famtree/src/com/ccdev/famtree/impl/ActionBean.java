@@ -120,6 +120,7 @@ public class ActionBean implements Action {
                 JSONObject userProp = new JSONObject();
                 userProp.put("family_name", user.getFamilyName());
                 userProp.put("given_name", user.getGivinName());
+                userProp.put("fullname", myUtil.makeFullName(user));
                 userProp.put("username", user.getUsername());
                 userProp.put("level", user.getLevel());
                 result.put("user", userProp);
@@ -131,11 +132,12 @@ public class ActionBean implements Action {
                 JSONObject modules = new JSONObject();
 
                 if (user.getLevel() == Macro.ADMIN_LEVEL) {
+                        modules.put(Macro.MODULE_NAME_BUILDER, "manager");
                         modules.put(Macro.MODULE_NAME_ADMIN, "manager");
 
                 } else {
                         String q = "Select bit_or(g.user_mask),bit_or(g.manager_mask) from groups g" +
-                                        " join group_user gu on gu.user_id=" + user.getId() + " And gu.group_id=g.group_id";
+                                        " join group_user gu on gu.user_id=" + user.getId() + " And gu.group_id=g.id";
                         myUtil.dbg(5, q);
 
                         List<Object[]> rs = em.createNativeQuery(q).getResultList();
@@ -147,6 +149,12 @@ public class ActionBean implements Action {
                                         modules.put(Macro.MODULE_NAME_ADMIN, "manager");
                                 } else if((user_mask & Macro.MODULE_ADMIN) > 0) {
                                         modules.put(Macro.MODULE_NAME_ADMIN, "user");
+                                }
+                                
+                                if((manager_mask & Macro.MODULE_BUILDER) > 0) {
+                                        modules.put(Macro.MODULE_NAME_BUILDER, "manager");
+                                } else if((user_mask & Macro.MODULE_BUILDER) > 0) {
+                                        modules.put(Macro.MODULE_NAME_BUILDER, "user");
                                 }
                         }
                 }

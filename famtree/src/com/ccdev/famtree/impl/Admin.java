@@ -29,6 +29,8 @@ public class Admin implements DoAction {
 
 		if (act.equalsIgnoreCase("getUserList")) {
 			result = getUserList(user, request, em);
+		} else if (act.equalsIgnoreCase("getModules")) {
+			result = getModules(user, request, em);
 		} else if (act.equalsIgnoreCase("getUser")) {
 			result = getUser(user, request, em);
 		} else if (act.equalsIgnoreCase("getUserByUsername")) {
@@ -141,8 +143,9 @@ public class Admin implements DoAction {
 				uObj.put("disabled", user.getDisabled()==null?0:user.getDisabled());
                                 uObj.put("family_name", user.getFamilyName());
                                 uObj.put("given_name", user.getGivinName());
+				uObj.put("name", myUtil.makeFullName(user));
 			}else{
-				uObj.put("name", user.getFamilyName() + user.getGivinName());
+				uObj.put("name", myUtil.makeFullName(user));
 			}
 			user_list.put(uObj);
 		}
@@ -169,7 +172,7 @@ public class Admin implements DoAction {
                                 uObj.put("family_name", user.getFamilyName());
                                 uObj.put("given_name", user.getGivinName());
 			}else{
-				uObj.put("name", user.getFamilyName() + user.getGivinName());
+				uObj.put("name", myUtil.makeFullName(user));
 			}
 			user_list.put(uObj);
 		}
@@ -200,7 +203,7 @@ public class Admin implements DoAction {
 		JSONArray ar = new JSONArray();
 		JSONObject ret_obj = new JSONObject();
 
-		String q= "select a.group_id,a.groupname from groups a join group_user b on a.group_id=b.group_id where b.user_id =" +id;
+		String q= "select a.id,a.groupname from groups a join group_user b on a.id=b.group_id where b.user_id =" +id;
 		Query query=em.createNativeQuery(q);
 		List<Object[]> platforms = em.createNativeQuery(q).getResultList();
 		for (Object[] o : platforms) {
@@ -212,7 +215,6 @@ public class Admin implements DoAction {
 		ret_obj.put("results", ar);
 		return myUtil.actionSuccess(ret_obj);
 	}
-
 
 	private String addUser(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
@@ -286,7 +288,7 @@ public class Admin implements DoAction {
 
 		String groups = request.getParameter("groups");
 		if (groups != null && (!groups.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select " + new_id + ", group_id  from groups where group_id in ("+groups+")";
+			q= "insert into group_user (user_id,group_id) select " + new_id + ", id  from groups where id in ("+groups+")";
 			myUtil.dbg(3, q);
 			qy =  em.createNativeQuery(q);
 			qy.executeUpdate();
@@ -374,7 +376,7 @@ public class Admin implements DoAction {
 
 		String groups = request.getParameter("groups");
 		if (groups != null && (!groups.equals(""))) {
-			q= "insert into group_user (user_id,group_id) select " + id + ", group_id  from groups where group_id in ("+groups+")";
+			q= "insert into group_user (user_id,group_id) select " + id + ", id  from groups where id in ("+groups+")";
 			myUtil.dbg(3, q);
 			query =  em.createNativeQuery(q);
 			query.executeUpdate();
@@ -407,7 +409,6 @@ public class Admin implements DoAction {
 	}
 
 	private String changePassword(Users user, HttpServletRequest request, EntityManager em) {
-
 		Long id = user.getId();
 		myUtil.dbg(5, "" +id);
 
@@ -420,9 +421,10 @@ public class Admin implements DoAction {
 		}
 
 		String newPass = request.getParameter("newpassword");
-		String q = "update users set password=MD5('" + newPass + "'),inused=0 where id=" + id;
+		String q = "update users set password=MD5('" + newPass + "') where id=" + id;
 		return myUtil.doDBUpdate(q, em);
 	}
+
 	private String resetPassword(Users user, HttpServletRequest request, EntityManager em) {
 		if (!have_permission(user, request, em)) {
 			return myUtil.actionFail("Permission Denied!", Macro.FAILCODE_IGNORE);
@@ -436,53 +438,33 @@ public class Admin implements DoAction {
 			return myUtil.actionFail("Unknown id:" + id);
 		}
 		String username = u.getUsername();
-		String name = u.getFamilyName() + u.getGivinName();
+		String name = myUtil.makeFullName(u);
 		String password = generatePassword(8);
 
-		int inused = -1;
-		if(username.indexOf("@") < 0){
-			inused = 0;
-		}
-		String q = "update users set password=MD5('" + password + "'),inused=" + inused + " ,last_login=null" +" where id=" + id;
+		String q = "update users set password=MD5('" + password + "'),last_login=null" +" where id=" + id;
 		if(!myUtil.execDBUpdate(q, em)) {
 			return myUtil.actionFail(Macro.ERR_DB_UPDATE);
 		}
-		if(username.indexOf("@") > 0){
-			if(!this.sendWelcomeEmail(request, username, name, password)){
-				return myUtil.actionFail(Macro.ERR_SEND_EMAIL);
-			}
-		}
+                if(!this.sendWelcomeEmail(request, username, name, password)){
+                        return myUtil.actionFail(Macro.ERR_SEND_EMAIL);
+                }
 		return myUtil.actionSuccess();
-	}
-	private boolean sendNewFortineterEmail(String mailto, String fullname){
-		String subject = "Account Creation at Fortinet Vendor Portal (For Fortinet Internal User)";
-		String url = Macro.PUBLIC_DOMAIN;
-		String msg = "Dear " + fullname + ":\n\n"
-				+ "An account has been setup for you at Fortinet's Vendor Portal."
-				+ " You can access the website: " + url
-				+ "\nBy using username:" + mailto + " and with your Fortinet password\n\n"
-				+ "Please do not reply to this email.\n\n"
-				+ "Thank you.\n\n"
-				+ "Fortinet Vendor Portal Admin";
-
-		if (myUtil.sendEmail("noreply"+ Macro.EMAIL_AFFIX, mailto + Macro.EMAIL_AFFIX, null, msg, subject)) return true;
-		else return false;
 	}
 
 	private boolean sendWelcomeEmail(HttpServletRequest request, String mailto, String fullname, String password){
-		String subject = "Account Creation at Fortinet Vendor Portal";
+		String subject = "Account Creation at " + Macro.SYSTEM_NAME;
 //		String url = StringFunc.getSubPathTrimRight(request.getRequestURL().toString());
 		String url = Macro.PUBLIC_DOMAIN;
 		String msg = "Dear " + fullname + ":\n\n"
-				+ "An account has been setup for you at Fortinet's Vendor Portal."
-				+ "  Please click the following link to change your password:\n\n"
+				+ "An account has been setup for you at " + Macro.SYSTEM_NAME + ".\n\n"
+				+ " Please click the following link to change your password:\n\n"
 				+ url + "/loginServlet?user=" + mailto + "&password=" + password + "\n\n"
 				+ "Once you change your password, you can login to the system at:\n\n " + url + "\n\n"
 				+ "Please do not reply to this email.\n\n"
 				+ "Thank you.\n\n"
-				+ "Fortinet Vendor Portal Admin";
+				+ Macro.SYSTEM_NAME + " Admin";
 
-		EmailThread eThread = new EmailThread("vendor-admin" + Macro.EMAIL_AFFIX, mailto, null, msg, subject);
+		EmailThread eThread = new EmailThread("admin" + Macro.EMAIL_AFFIX, mailto, null, msg, subject);
 		eThread.start();
 		return true;
 	}
@@ -495,6 +477,7 @@ public class Admin implements DoAction {
 		}
 		return sb.toString();
 	}
+
 	private boolean have_permission(Users user, HttpServletRequest request, EntityManager em) {
 		if (user.getLevel() == Macro.ADMIN_LEVEL) {
 			return true;
@@ -510,7 +493,6 @@ public class Admin implements DoAction {
 	}
 
 	private JSONArray getGroups(int display_disabled, int shorted, EntityManager em) {
-
 		String q = "select * from groups order by groupname";
                 myUtil.dbg(5, q);
 		Query query = em.createNativeQuery(q, Groups.class);
@@ -526,8 +508,8 @@ public class Admin implements DoAction {
 			grpObj.put("name", gname);
 			if (shorted != 1) {
 				grpObj.put("descript", group.getDescription());
-				grpObj.put("user_mask", group.getUserMask());
-				grpObj.put("manager_mask", group.getManagerMask());
+				grpObj.put("user_mask", getMaskList(group.getUserMask()));
+				grpObj.put("manager_mask", getMaskList(group.getManagerMask()));
 				grpObj.put("disabled", group.getDisabled());
 				grpObj.put("on_using", group.on_using(em) ? 1 : 0);
 			}
@@ -536,6 +518,19 @@ public class Admin implements DoAction {
 
 		return group_list;
 	}
+        
+        private String getMaskList(Integer iMask) {
+            String str = "";
+            if(iMask != null && iMask > 0) {
+                int mk = 0x1;
+                while(mk <= 0x8000) {
+                    if((iMask & mk) > 0) str += "," + mk;
+                    mk <<= 1;
+                }
+            }
+            if(str.isEmpty()) return "";
+            return str.substring(1);
+        }
 
 	private String getGroupList(Users user, HttpServletRequest request, EntityManager em) {
 		int disabled = myUtil.IntegerWithNullToZero(request.getParameter("disabled"));
@@ -568,7 +563,6 @@ public class Admin implements DoAction {
 		return myUtil.actionSuccess(ret_obj);
 	}
 
-
 	private String getGroup(Users user, HttpServletRequest request, EntityManager em) {
 		long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
@@ -588,6 +582,7 @@ public class Admin implements DoAction {
 		Obj.put("id", g.getId());
 		Obj.put("name", g.getDescription());
 		Obj.put("description", g.getDescription());
+                
 		JSONArray array_inusers = new JSONArray();
 		String q = "select a.* from users a join group_user b on a.id= b.user_id where b.group_id ="+id;
 		Query query = em.createNativeQuery(q, Users.class);
@@ -595,13 +590,13 @@ public class Admin implements DoAction {
 		for (Users u : users) {
 			JSONObject uObj = new JSONObject();
 			uObj.put("id", u.getId());
-			uObj.put("name", u.getFamilyName() + u.getGivinName());
+			uObj.put("name", myUtil.makeFullName(u));
 			array_inusers.put(uObj);
 		}
 		Obj.put("inusers", array_inusers);
 
 		q = "select * from users where id not in ";
-		q += "(select user_id from group_user where group_id=" + id + ") and (disabled=0 or disabled is null) order by fullname";
+		q += "(select user_id from group_user where group_id=" + id + ") and (disabled=0 or disabled is null) order by family_name,given_name";
 		myUtil.dbg(3, q);
 		query = em.createNativeQuery(q, Users.class);
 		ArrayList<Users> outusers = (ArrayList<Users>) query.getResultList();
@@ -609,7 +604,7 @@ public class Admin implements DoAction {
 		for (Users u : outusers) {
 			JSONObject uObj = new JSONObject();
 			uObj.put("id", u.getId());
-			uObj.put("name", u.getFamilyName() + u.getGivinName());
+			uObj.put("name", myUtil.makeFullName(u));
 			array_outusers.put(uObj);
 		}
 		Obj.put("outusers", array_outusers);
@@ -651,9 +646,9 @@ public class Admin implements DoAction {
 
 		long g_id = g.getId();
 
-		int manager_mask = myUtil.IntegerNullToMinusOne(request.getParameter("manager_mask"));
-		if (manager_mask>=0) g.setManagerMask(manager_mask);
-		int user_mask = myUtil.IntegerNullToMinusOne(request.getParameter("user_mask"));
+//		int manager_mask = myUtil.IntegerNullToMinusOne(request.getParameter("manager_mask"));
+//		if (manager_mask>=0) g.setManagerMask(manager_mask);
+		int user_mask = myUtil.IntegerNullToMinusOne(request.getParameter("mask"));
 		if (user_mask>=0) g.setUserMask(user_mask);
 		em.merge(g);
 
@@ -681,12 +676,11 @@ public class Admin implements DoAction {
 		String name = StringFunc.TrimedString(request.getParameter("name"));
 		String desc = request.getParameter("descript");
 		int disabled = myUtil.IntegerNullToMinusOne(request.getParameter("disabled"));
-		int user_mask = myUtil.IntegerNullToMinusOne(request.getParameter("user_mask"));
+		int user_mask = myUtil.IntegerNullToMinusOne(request.getParameter("mask"));
 		int manager_mask = myUtil.IntegerNullToMinusOne(request.getParameter("manager_mask"));
 		if (id == 0) {
 			return myUtil.actionFail("Unknown Group ID");
 		}
-
 
 		Groups g = em.find(Groups.class, id);
 		if (null == g) {
@@ -704,7 +698,7 @@ public class Admin implements DoAction {
 			if (myUtil.haveSpecialChar(name, spcs) != 0) {
 				return myUtil.actionFail("Group name hace spcial charater[',%,\\]!", Macro.FAILCODE_IGNORE);
 			}
-			if (myUtil.exists_check("select count(*) from groups where groupname='" + name + "' and group_id!=" + id, em)) {
+			if (myUtil.exists_check("select count(*) from groups where groupname='" + name + "' and id!=" + id, em)) {
 				return myUtil.actionFail("Group name:" + name + " exists!", Macro.FAILCODE_IGNORE);
 			}
 			if (name.length() > Macro.MAX_STRLEN) {
@@ -742,7 +736,6 @@ public class Admin implements DoAction {
 	}
 
 	private String removeGroup(Users user, HttpServletRequest request, EntityManager em) {
-
 		Long id = myUtil.LongWithNullToZero(request.getParameter("id"));
 		if (id == 0) {
 			return myUtil.actionFail("mission id");
@@ -763,6 +756,21 @@ public class Admin implements DoAction {
 
 		return myUtil.actionSuccess();
 	}
+
+        private String getModules(Users user, HttpServletRequest request, EntityManager em) {
+            JSONArray ar = new JSONArray();
+            JSONObject obj = new JSONObject();
+            obj.put("id", Macro.MODULE_BUILDER);
+            obj.put("name", Macro.MODULE_NAME_BUILDER);
+            ar.put(obj);
+
+            obj = new JSONObject();
+            obj.put("id", Macro.MODULE_ADMIN);
+            obj.put("name", Macro.MODULE_NAME_ADMIN);
+            ar.put(obj);
+            
+            return myUtil.actionSuccess(ar);
+        }
 
 }
 

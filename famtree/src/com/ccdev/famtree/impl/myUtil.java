@@ -584,17 +584,6 @@ public class myUtil {
 				(macaddr>>8)&0xff, macaddr&0xff);
 	}
 
-	public static int getYearFromSN(String sn) {
-		int cur_year = Calendar.getInstance().get(Calendar.YEAR);
-		int century = cur_year / 100;
-		int y = myUtil.IntegerWithNullToZero(sn.substring(Macro.SN_YEAR_IDX-1, Macro.SN_YEAR_IDX - 1 + Macro.SN_YEAR_LENGTH));
-		y += century * 100;
-		if(y > cur_year) {
-			y -= 100;
-		}
-		return y;
-	}
-
 	public static boolean BooleanNullToFalse(Integer v) {
 		return v != null && v > 0;
 	}
@@ -647,8 +636,20 @@ public class myUtil {
 	public static final boolean hasPermission(Users user, int module, EntityManager em) {
 		if (user.getLevel() == Macro.ADMIN_LEVEL) return true;
 		String q = "Select bit_or(g.mask) from groups g join group_user gu on gu.user_id="
-				+ user.getId() + " And gu.group_id=g.group_id";
+				+ user.getId() + " And gu.group_id=g.id";
 		int mask = myUtil.getIntegerBySQL(q, em);
 		return (mask & module) > 0;
 	}
+
+        public static String makeFullName(Users user) {
+            String familyName = user.getFamilyName();
+            String givenName = user.getGivinName();
+            String fName = familyName;
+            if(familyName.matches("^[\\x00-\\x7F]+$")) {
+                fName = givenName + ' ' + fName;
+            } else {
+                fName += givenName;
+            }
+            return fName;
+        }
 }
