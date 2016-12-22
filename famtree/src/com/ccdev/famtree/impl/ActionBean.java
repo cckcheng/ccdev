@@ -164,18 +164,35 @@ public class ActionBean implements Action {
                 result.put("success", "true");
                 return result.toString();
 	}
+        
+	static final Map<String, String> fun;
+	static {
+            fun = new HashMap();
+            fun.put("Admin".toLowerCase(), "com.ccdev.famtree.impl.Admin");
+            fun.put("OptPedigree".toLowerCase(), "com.ccdev.famtree.impl.OptPedigree");
+        }
+
+        public DoAction getAction(String actName) {
+            if(!fun.containsKey(actName)) return null;
+            try {
+                Class<?> cls = Class.forName(fun.get(actName));
+		return (DoAction) cls.newInstance();
+	    } catch (Exception ex) {
+                ex.printStackTrace();
+	    }
+
+            return null;
+        }
 
 	public String doAction(Users user, HttpServletRequest request) {
-                Hashtable<String, DoAction> fun = new Hashtable<String, DoAction>();
-                fun.put("Admin".toLowerCase(), new Admin());
-
                 String actName = request.getParameter("dowhat");
                 if (actName == null) {
                         return myUtil.actionFail("dowhat can not be null!");
                 }
                 actName = actName.toLowerCase();
 
-                if (fun.containsKey(actName)) {
+                DoAction act = getAction(actName);
+                if (act != null) {
                         Set<String> ignoredActions = new HashSet();
 //				ignoredActions.add("getUserList".toLowerCase());
 //				ignoredActions.add("viewUploads".toLowerCase());
@@ -184,19 +201,20 @@ public class ActionBean implements Action {
                                 myUtil.dumpRequest(request);
                         }
 
-                        return fun.get(actName).doAction(user, request, em);
+                        return act.doAction(user, request, em);
                 }
                 return myUtil.actionFail("Action " + actName + " is not supported!");
 	}
+
 	public void updateLastLogin(Users user){
                 user.setLastLogin(new Date());
                 em.merge(user);
 	}
+
 	public void disableUser(Users user){
                 user.setDisabled(1);
                 em.merge(user);
 	}
-
 
 	public String doUpload(Users user, HttpServletRequest request) {
             try{

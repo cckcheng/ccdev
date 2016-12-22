@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -652,4 +653,57 @@ public class myUtil {
             }
             return fName;
         }
+
+	/**
+	 * get formated date: "yyyy-MM-dd"
+	 * @param dt
+	 * @return
+	 */
+	private static final SimpleDateFormat fmtDate = new SimpleDateFormat("yyyy-MM-dd");
+	public static final String formatDate(Date dt) {
+		if (dt == null) {
+			return "";
+		}
+		return fmtDate.format(dt);
+	}
+
+	public static final Date parseDate(String sDate) {
+		if (sDate == null) {
+			return null;
+		}
+                
+                try {
+        		return fmtDate.parse(sDate);
+                } catch (Exception e) {
+                }
+                
+                return null;
+	}
+
+	/**
+	 * get formated time: "yyyy-MM-dd HH:mm"
+	 * @param dt
+	 * @return
+	 */
+	private static final SimpleDateFormat fmtTime = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	public static final String formatTime(Date dt) {
+		if (dt == null) {
+			return "";
+		}
+		return fmtTime.format(dt);
+	}
+
+	/**
+	 * get formated time: "yyyy-MM-dd HH:mm:ss"
+	 * @param dt
+	 * @return
+	 */
+	private static final SimpleDateFormat fmtFullTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public static final String formatFullTime(Date dt) {
+		if (dt == null) {
+			return "";
+		}
+		return fmtFullTime.format(dt);
+	}
+
 }
