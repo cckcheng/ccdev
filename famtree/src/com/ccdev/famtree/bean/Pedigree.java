@@ -67,8 +67,13 @@ public class Pedigree implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "create_time")
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date createTime;
+    @Basic(optional = false)
+    @NotNull
+    @Column(name = "modify_time")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date modifyTime;
     @Basic(optional = false)
     @NotNull
     @Column(name = "creator_id")
@@ -80,12 +85,12 @@ public class Pedigree implements Serializable {
     private String individualTable;
 
     public Pedigree() {
-        this.createTime = new Date();
+        this.createTime = this.modifyTime = new Date();
     }
 
     public Pedigree(String pedigreeName, long creatorId) {
         this.pedigreeName = pedigreeName;
-        this.createTime = new Date();
+        this.createTime = this.modifyTime = new Date();
         this.creatorId = creatorId;
     }
 
@@ -127,6 +132,14 @@ public class Pedigree implements Serializable {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Date getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(Date modifyTime) {
+        this.modifyTime = modifyTime;
     }
 
     public long getCreatorId() {

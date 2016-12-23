@@ -49,6 +49,8 @@ public class OptPedigree implements DoAction {
 
         if (act.equalsIgnoreCase("getPedigreeList")) {
                 result = getPedigreeList(user, request, em);
+        } else if (act.equalsIgnoreCase("printOut")) {
+                result = printOut(user, request, em);
         } else if (act.equalsIgnoreCase("manageUsers")) {
                 this.log = myUtil.log(user, request, em);
                 result = manageUsers(user, request, em);
@@ -69,19 +71,28 @@ public class OptPedigree implements DoAction {
 
     private String getPedigreeList(Users user, HttpServletRequest request, EntityManager em) {
         JSONArray ar = new JSONArray();
-        String q = "Select * From pedigree where creator_id=" + user.getId();
+        String cond = "creator_id=" + user.getId();
+        int total = myUtil.getCountBySQL("Select count(*) from pedigree where " + cond, em);
+        if(total == 0) return myUtil.actionSuccess(ar);
+
+        String q = "Select * From pedigree where " + cond + " order by id desc";
+        q += myUtil.limitClause(request);
+
         List<Pedigree> rs = em.createNativeQuery(q, Pedigree.class).getResultList();
-        if(rs.isEmpty()) return myUtil.actionSuccess(ar);
-        
         for(Pedigree o : rs) {
             JSONObject obj = new JSONObject();
             obj.put("id", o.getId());
             obj.put("pedigree_name", o.getPedigreeName());
             obj.put("family_name", o.getFamilyName());
             obj.put("created", myUtil.formatTime(o.getCreateTime()));
+            obj.put("modified", myUtil.formatTime(o.getModifyTime()));
             ar.put(obj);
         }
-        return myUtil.actionSuccess(ar);
+        return myUtil.actionSuccess(total, ar);
+    }
+
+    private String printOut(Users user, HttpServletRequest request, EntityManager em) {
+        return myUtil.actionSuccess();
     }
     
 }
