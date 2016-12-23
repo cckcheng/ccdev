@@ -216,13 +216,13 @@ Ext.extend(famtree.user, Ext.grid.GridPanel, {
     renderAction: function (value, p, record, ridx, cindx, dd) {
         var html_s = '<table><tr>';
         html_s = html_s + '<td><img border=0 src="images/icons/fam/insert-before.gif"  style="cursor:hand" alt="Edit"';
-        html_s = html_s + ' ext:qtip="Edit" onclick="javascript:famtree.user.prototype.handle_edit({0})"';
-        html_s = html_s + ' ></td>';
+        html_s = html_s + ' ext:qtip="Edit" onclick="javascript:famtree.user.prototype.handle_edit({0})" >';
+        html_s = html_s + '</td>';
 
         if (record.data.onused == 0) {
             html_s = html_s + '<td><img border=0 src="images/icons/fam/trash.gif" style="cursor:hand" alt="Remove"';
             html_s = html_s + ' ext:qtip="Remove"';
-            html_s = html_s + ' onclick="javascript:famtree.user.prototype.handle_delete({0})"';
+            html_s = html_s + ' onclick="javascript:famtree.user.prototype.handle_delete({0})" >';
             html_s = html_s + '</td>';
         } else {
             html_s = html_s + '<td></td>';
@@ -232,7 +232,7 @@ Ext.extend(famtree.user, Ext.grid.GridPanel, {
         if (usrname.indexOf("@") >= 0) {
             html_s = html_s + '<td><img border=0 src="images/icons/fam/arrow_rotate_anticlockwise.png" style="cursor:hand" alt="Reset"';
             html_s = html_s + ' ext:qtip="Reset Password"';
-            html_s = html_s + ' onclick="javascript:famtree.user.prototype.handle_reset({0})"';
+            html_s = html_s + ' onclick="javascript:famtree.user.prototype.handle_reset({0})" >';
             html_s = html_s + '</td>';
         }
 

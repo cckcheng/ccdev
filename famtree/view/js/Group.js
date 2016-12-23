@@ -156,13 +156,13 @@ Ext.extend(famtree.group, Ext.grid.GridPanel, {
     renderAction: function (value, p, record, ridx, cindx, dd) {
         var html_s = '<table><tr>';
         html_s = html_s + '<td><img border=0 src="images/icons/fam/insert-before.gif"  style="cursor:hand" alt="Edit"';
-        html_s = html_s + ' ext:qtip="Edit" onclick="javascript:famtree.group.prototype.handle_edit({0})"';
-        html_s = html_s + ' ></td>';
+        html_s = html_s + ' ext:qtip="Edit" onclick="javascript:famtree.group.prototype.handle_edit({0})" >';
+        html_s = html_s + '</td>';
 
         if (record.data.on_using == 0 && famtree.global.user.level == famtree.global.macro.ADMIN_LEVEL) {
             html_s = html_s + '<td><img border=0 src="images/icons/fam/trash.gif" style="cursor:hand" alt="Remove"';
-            html_s = html_s + ' ext:qtip="Remove" onclick="javascript:famtree.group.prototype.handle_delete({0})"';
-            html_s = html_s + ' ></td>';
+            html_s = html_s + ' ext:qtip="Remove" onclick="javascript:famtree.group.prototype.handle_delete({0})" >';
+            html_s = html_s + '</td>';
         } else {
             html_s = html_s + '<td></td>';
         }

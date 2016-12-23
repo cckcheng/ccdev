@@ -26,13 +26,98 @@
 Ext.namespace('famtree');
 
 famtree.FamtreePanel = function() {
+    var dsPedigree = new Ext.data.JsonStore({
+        url: 'actionServlet',
+        autoLoad: false,
+        baseParams: {
+            dowhat: 'OptPedigree',
+            action: 'getPedigreeList'
+        },
+        fields: ['id', 'pedigree_name', 'family_name', 'created'],
+        root: 'results',
+        totalProperty: 'total'
+    });
+    
+    var myPedigree = new Ext.grid.GridPanel({
+        title: 'My Pedigree List',
+        store: dsPedigree,
+        columns: [{
+            header: 'Pedigree Name',
+            width: 300,
+            dataIndex: 'pedigree_name',
+            scope: this,
+            renderer: function(v, p, rec) {
+                var htm = '<A href="#" onclick="javascript:famtree.FamtreePanel.prototype.showFamilyTree(\'{0}\',\'{1}\')">' + v + '</A>';
+                return String.format(htm, rec.id, this.id);
+            }
+        }, {
+            header: 'Family Name',
+            dataIndex: 'family_name'
+        }, {
+            header: 'Create Time',
+            dataIndex: 'created'
+        }, {
+            header: 'Action',
+            align: 'center',
+            width: 150,
+            dataIndex: 'id',
+            renderer: function(v, p, rec) {
+                var htm = '<img border=0 src="images/icons/treeicon.gif" style="cursor:hand" alt="generate PDF"';
+                htm += ' ext:qtip="生成PDF" onclick="javascript:famtree.FamtreePanel.prototype.printPedigree({0})" >';
+                return String.format(htm, v);
+            }
+        }],
+    
+        bbar: new Ext.PagingToolbar({
+            displayInfo: true,
+            pageSize: this.pageSize,
+            store: dsPedigree
+        })
+    });
+    
+    famtree.FamtreePanel.prototype.showFamilyTree = function(recId, panelId) {
+        var p = Ext.getCmp(panelId);
+        var rec = dsPedigree.getById(recId);
+        p.viewFamilyTree(rec);
+    };
+
+    famtree.FamtreePanel.prototype.printPedigree = function(pedigreeId) {
+        famtree.doServerAction({
+            dowhat: 'OptPedigree',
+            action: 'printOut',
+            id: pedigreeId
+        }, function() {
+            Ext.Msg.alert('Success', 'The printout will be sent to you when it is ready.');
+        }, this, true);
+    };
+
     var config = {
         id: 'famtree-builder-panel',
-        title: 'Family Tree',
-        html: 'first panel'
+        enableTabScroll: true,
+        activeTab: 0,
+        items: [myPedigree]
     };
     
     Ext.Panel.superclass.constructor.call(this, config);
+    dsPedigree.load({
+        params: {
+            limit: this.pageSize
+        }
+    });
 };
 
-Ext.extend(famtree.FamtreePanel, Ext.Panel, {});
+Ext.extend(famtree.FamtreePanel, Ext.TabPanel, {
+    pageSize: 50,
+    
+    viewFamilyTree: function(rec) {
+        var tab_id = 'famtree-pedigree-' + rec.get('id');
+        var tab = this.findById(tab_id);
+        if(!tab) {
+            this.add({
+                id: tab_id,
+                title: rec.get('pedigree_name')
+            });
+        }
+        this.setActiveTab(tab_id);
+    }
+});
