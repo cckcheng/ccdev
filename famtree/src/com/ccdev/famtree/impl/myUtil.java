@@ -645,6 +645,11 @@ public class myUtil {
         public static String makeFullName(Users user) {
             String familyName = user.getFamilyName();
             String givenName = user.getGivinName();
+            return makeFullName(familyName, givenName);
+        }
+
+        public static String makeFullName(String familyName, String givenName) {
+            if(familyName == null || familyName.isEmpty()) return givenName;
             String fName = familyName;
             if(familyName.matches("^[\\x00-\\x7F]+$")) {
                 fName = givenName + ' ' + fName;

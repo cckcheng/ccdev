@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2016, ccheng
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.ccdev.printout;
+
+import com.ccdev.famtree.bean.Individual;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Chunk;
 import java.io.FileNotFoundException;
@@ -431,7 +459,7 @@ public class TreeToPDF {
 
 	private void printIndexLine(HashMap<String, Integer> index, PdfPTable p, Individual ind, float w1, float w2, float w3) throws BadElementException {
 		StringBuilder s = new StringBuilder();
-		String id = ind.getId();
+		String id = "" + ind.getId();
 		PdfPCell c = generalCell(ind.getPrintName(this.failyName), this.fontSmallName, w1);
 		c.setCellEvent(new IndexCellEvent(id));
 		p.addCell(c);
@@ -934,14 +962,14 @@ public class TreeToPDF {
 						this.getWidthPoint(ind.getPrintName(this.failyName), isLeadingNode), true);
 				this.pendingNodes.add(node);
 
-				cell.setCellEvent(new CellConnector(CellConnector.SOURCE, ind.getId(), this.connectors,
+				cell.setCellEvent(new CellConnector(CellConnector.SOURCE, "" + ind.getId(), this.connectors,
 						this.layout, this.fontSmallName, this.fontSizeName));
 			}
 			table.addCell(cell);
 			printSibling(node);
 		} else {
 			if(isLeadingNode) {
-				cell.setCellEvent(new CellConnector(CellConnector.DESTINATION, ind.getId(), this.connectors,
+				cell.setCellEvent(new CellConnector(CellConnector.DESTINATION, "" + ind.getId(), this.connectors,
 						this.layout, this.fontSmallName, this.fontSizeName));
 			}
 			int rowSpan = getLeafCount(node);
@@ -978,7 +1006,7 @@ public class TreeToPDF {
 			cell = this.horizontalLayoutCell(ind, isLeadingNode);
 		}
 
-		ConnectNode conn = new ConnectNode(ind.getId(), isLeadingNode || node.isRoot(), !node.isLeaf(),
+		ConnectNode conn = new ConnectNode("" + ind.getId(), isLeadingNode || node.isRoot(), !node.isLeaf(),
 				node.getPreviousSibling() != null, node.getNextSibling() != null,
 				this.getWidthPoint(ind.getPrintName(this.failyName), isLeadingNode));
 		conn.setConnect_style(this.layout == VERTICAL ? conn.CIRCLE : conn.LINE);
@@ -1065,9 +1093,9 @@ public class TreeToPDF {
 		} else {
 			p.setLeading(this.fontSizeName);
 			Chunk c = new Chunk(s, this.fontName);
-			c.setLocalDestination(ind.getId());
-//			c.setLocalGoto(ind.getId());
-			c.setGenericTag(ind.getId());
+			c.setLocalDestination("" + ind.getId());
+//			c.setLocalGoto("" + ind.getId());
+			c.setGenericTag("" + ind.getId());
 			pName = new Paragraph(c);
 			p.add(pName);
 			if(ind.hasInfo()) {
@@ -1136,8 +1164,8 @@ public class TreeToPDF {
 		if(isLeadingNode) {
 			chk.setLocalDestination("to" + ind.getId());
 		} else if(this.appendIndex) {
-			chk.setLocalDestination(ind.getId());
-			chk.setGenericTag(ind.getId());
+			chk.setLocalDestination("" + ind.getId());
+			chk.setGenericTag("" + ind.getId());
 		}
 		PdfPCell c = new PdfPCell(new Phrase(chk));
 		c.setPadding(0);
@@ -1151,8 +1179,8 @@ public class TreeToPDF {
 //		if(this.appendIndex) {
 //			// this is a work around
 //			chk = new Chunk(" ", this.fontTemp);
-//			chk.setLocalDestination(ind.getId());
-//			chk.setGenericTag(ind.getId());
+//			chk.setLocalDestination("" + ind.getId());
+//			chk.setGenericTag("" + ind.getId());
 //			PdfPCell temp = new PdfPCell(new Phrase(chk));
 //			temp.setPaddingTop(0);
 //			temp.setPaddingBottom(0);

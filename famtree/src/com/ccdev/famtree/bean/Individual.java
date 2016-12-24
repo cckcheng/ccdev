@@ -25,15 +25,17 @@
  */
 package com.ccdev.famtree.bean;
 
+import com.ccdev.famtree.impl.myUtil;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.List;
 
 /**
  * this is a non-entity class
  * @author ccheng
  */
-public class Individual implements Serializable {
+public class Individual implements Serializable, Comparable {
 
     private Long id;
     private String givenName;
@@ -157,6 +159,41 @@ public class Individual implements Serializable {
         this.gen = gen;
     }
 
+    public String getPrintName(String rootFamilyName) {
+        if(rootFamilyName == null || rootFamilyName.equalsIgnoreCase(this.familyName)) return this.givenName;
+        return myUtil.makeFullName(familyName, givenName);
+    }
+
+    public boolean hasSpouse() {
+        // need modify
+        return false;
+    }
+    
+    public String getSpouseName() {
+        // need modify
+        return "";
+    }
+    
+    public boolean hasInfo() {
+        // need modify
+        return false;
+    }
+
+    public boolean hasNote() {
+        // need modify
+        return false;
+    }
+
+    public List<String> getNotes() {
+        // need modify
+        return null;
+    }
+
+    public List<String> getInfo() {
+        // need modify
+        return null;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 0;
@@ -181,5 +218,17 @@ public class Individual implements Serializable {
     public String toString() {
         return "com.ccdev.famtree.bean.Individual[ id=" + id + " ]";
     }
-    
+
+    @Override
+    public int compareTo(Object obj) {
+            if (obj == null) {
+                    return -1;
+            }
+            if (getClass() != obj.getClass()) {
+                    return -1;
+            }
+            final Individual other = (Individual) obj;
+            return this.getGivenName().compareToIgnoreCase(other.getGivenName());
+    }
+
 }
