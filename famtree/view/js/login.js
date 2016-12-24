@@ -33,14 +33,15 @@ famtree.login = function() {
 	});
 
 	var username = new Ext.form.TextField({
-			fieldLabel: 'Username: (Email Address)',
+			fieldLabel: famtree.getPhrase('Username') + '(' + famtree.getPhrase('Email Address') + '):',
 			labelSeparator:'',
 			allowBlank: false,
-			blankText: 'Please Enter Your Email Address',
+			blankText: famtree.getPhrase('Please Enter Your Email Address'),
 			name: 'user'
 		});
 	var logo_label = new Ext.form.Label({
-		html: '<div style="text-align:center;font-size:large;margin-bottom:30px;margin-top:5px;">Family Tree Builder&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>'
+		html: '<div style="text-align:center;font-size:large;margin-bottom:30px;margin-top:5px;">'
+                    + famtree.getPhrase('Family Tree Builder') + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>'
 	})
 	var formPanel = new Ext.FormPanel({
 		baseCls: 'x-plain',
@@ -51,10 +52,10 @@ famtree.login = function() {
 		height: 150,
 		id: 'login-form',
 		items: [logo_label, username, {
-			fieldLabel: 'Password',
+			fieldLabel: famtree.getPhrase('Password'),
 			inputType: 'password',
 			allowBlank: false,
-			blankText: 'Please Enter Password',
+			blankText: famtree.getPhrase('Please Enter Password'),
 			name: 'password'
 		}],
 		labelWidth:150,
@@ -85,7 +86,7 @@ famtree.login = function() {
 				famtree.global = a.result;
 				famtree.startApp();
 			} else {
-				Ext.Msg.alert('Login Failed', a.result.message);
+				Ext.Msg.alert(famtree.getPhrase('Login Failed'), a.result.message);
 			}
 		}
 	}
@@ -108,7 +109,7 @@ famtree.login = function() {
 	}
 
 	var win = new Ext.Window({
-		buttons: [{ handler: onSubmit, scope: this, text: 'Login' }],
+		buttons: [{ handler: onSubmit, scope: this, text: famtree.getPhrase('Login') }],
 		buttonAlign: 'right',
 		closable: false,
 		draggable: false,
@@ -126,7 +127,7 @@ famtree.login = function() {
 		plain: false,
 		resizable: false,
 		items: [ logoPanel, formPanel ],
-                title: 'Login',
+                title: famtree.getPhrase('Login'),
                 width: 480
 	});
 	win.show();
@@ -138,15 +139,15 @@ famtree.change_password = function(firstTime) {
 	var items = [];
 	if(!firstTime) {
 		items.push({
-			fieldLabel: 'Old Password',
+			fieldLabel: famtree.getPhrase('Old Password'),
 			name: 'oldpassword'
 		});
 	}
 	items.push({
-		fieldLabel: 'New Password',
+		fieldLabel: famtree.getPhrase('New Password'),
 		name: 'newpassword'
 	}, {
-		fieldLabel: 'Confirm New Password',
+		fieldLabel: famtree.getPhrase('Confirm New Password'),
 		name: 'confirmpassword'
 	});
 	var fp = new Ext.FormPanel({
@@ -165,12 +166,12 @@ famtree.change_password = function(firstTime) {
 		items: items,
 		monitorValid: true,
 		buttons: [{
-			text: 'Ok',
+			text: famtree.getPhrase('Ok'),
 			formBind: true,
 			handler: function(){
 				var values = fp.form.getValues();
 				if(values.newpassword != values.confirmpassword) {
-					Ext.Msg.alert('Error', 'New password and confirm new password does not match.');
+					Ext.Msg.alert(famtree.getPhrase('Error'), famtree.getPhrase('New password and confirm new password does not match'));
 					return;
 				}
 
@@ -179,11 +180,11 @@ famtree.change_password = function(firstTime) {
 						action: 'changePassword'
 					}, function(){
 						win.close();
-						Ext.Msg.alert('Success', 'Your password is changed.')
+						Ext.Msg.alert(famtree.getPhrase('Success'), famtree.getPhrase('Your password is changed'))
 					});
 			}
 		}, {
-			text: 'Cancel',
+			text: famtree.getPhrase('Cancel'),
 			hidden: firstTime,
 			handler: function(){
 				win.close();
@@ -191,7 +192,7 @@ famtree.change_password = function(firstTime) {
 		}]
 	});
 	var win = famtree.CustomWindow({
-		title: 'Change Password',
+		title: famtree.getPhrase('Change Password'),
 		closable: false,
 		width: winWidth,
 		items: fp

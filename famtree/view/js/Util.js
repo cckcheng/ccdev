@@ -37,12 +37,12 @@ famtree.del_cookie = function()
 		document.cookie = name+"=; expires=" + d.toGMTString() + ";" + ";";
 	}
 
-}
+};
 
 famtree.msg = function(title, msg){
 	Ext.Msg.show({
-		title: title,
-		msg: msg,
+		title: famtree.getPhrase(title),
+		msg: famtree.getPhrase(msg),
 		minWidth: 200,
 		modal: true,
 		icon: Ext.Msg.INFO,
@@ -55,7 +55,7 @@ famtree.enableContextMenu = function() {
 		return true;
 	}
 	return false;
-}
+};
 
 famtree.formsubmit_fail = function (theform, action) {
 	var json = action.result;
@@ -65,8 +65,8 @@ famtree.formsubmit_fail = function (theform, action) {
 		var exit_fun = famtree.logout;
 		if (json.failcode == -2) exit_fun = famtree.ignore;
 		Ext.Msg.show({
-			title:'Error:',
-			msg: json.message,
+			title: famtree.getPhrase('Error'),
+			msg: famtree.getPhrase(json.message),
 			buttons: Ext.Msg.OK,
 			minWidth: 360,
 			fn: exit_fun,
@@ -74,7 +74,7 @@ famtree.formsubmit_fail = function (theform, action) {
 			icon: Ext.MessageBox.QUESTION
 		});
 	}
-}
+};
 
 
 famtree.formsubmit = function(url,bp,success_call,fail_call) {
@@ -92,8 +92,8 @@ famtree.formsubmit = function(url,bp,success_call,fail_call) {
 				var exit_fun = famtree.logout;
 				if (action.result.failcode == -2) exit_fun = famtree.ignore;
 				Ext.Msg.show({
-					title:'Error:',
-					msg: action.result.message,
+					title: famtree.getPhrase('Error'),
+					msg: famtree.getPhrase(action.result.message),
 					buttons: Ext.Msg.OK,
 					minWidth: 360,
 					fn: exit_fun,
@@ -104,8 +104,8 @@ famtree.formsubmit = function(url,bp,success_call,fail_call) {
 				if(success_call && typeof success_call == 'function') success_call(form,action);
 			}
 		}
-	}
-}
+	};
+};
 
 famtree.submitForm = function(url, form, params, callback, err_title, msg_winsize) {
 	form.submit({
@@ -116,9 +116,9 @@ famtree.submitForm = function(url, form, params, callback, err_title, msg_winsiz
 			if (action.result.success == false || action.result.success == "false") {
 				if (msg_winsize) Ext.Msg.minWidth = msg_winsize;
 				if (err_title)
-					Ext.Msg.alert(err_title, action.result.message);
+					Ext.Msg.alert(famtree.getPhrase(err_title), famtree.getPhrase(action.result.message));
 				else
-					Ext.Msg.alert('Error', action.result.message);
+					Ext.Msg.alert(famtree.getPhrase('Error'), famtree.getPhrase(action.result.message));
 				Ext.Msg.minWidth = 200;
 			} else {
 				if(callback && typeof callback == 'function') callback(f, action);
@@ -140,10 +140,10 @@ famtree.submitForm = function(url, form, params, callback, err_title, msg_winsiz
 					msg += action.result.message;
 					break;
 			}
-			Ext.Msg.alert('Failure', msg);
+			Ext.Msg.alert(famtree.getPhrase('Failure'), famtree.getPhrase(msg));
 		}
-	})
-}
+	});
+};
 
 famtree.loadForm = function(form, params, callback) {
 	form.load({
@@ -168,17 +168,17 @@ famtree.loadForm = function(form, params, callback) {
 					msg += action.result.message;
 					break;
 			}
-			Ext.Msg.alert('Failure', msg);
+			Ext.Msg.alert(famtree.getPhrase('Failure'), famtree.getPhrase(msg));
 		}
-	})
-}
+	});
+};
 /**
  * this is a alterative function of DataLoader
  *  the param is an object
  */
 famtree.DataLoaderAlt = function(o) {
 	famtree.DataLoader(o.url, o.param, o.scope, o.success, o.fail, o.timeout);
-}
+};
 
 famtree.DataLoader = function(url,bp,scope,callback,fail_call, timeout){
 
@@ -191,8 +191,8 @@ famtree.DataLoader = function(url,bp,scope,callback,fail_call, timeout){
 		url: url,
 		success: handleResponse,
 		failure: function(response){
-			Ext.Msg.alert("Action Failed", response.statusText + "<br>Status: " + response.status
-				+ "<br>Please try again later.");
+			Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
+				+ "<br>" + famtree.getPhrase("Please try again later"));
 		//fail_fn(scope, response);
 		},
 		scope: this,
@@ -215,32 +215,32 @@ famtree.DataLoader = function(url,bp,scope,callback,fail_call, timeout){
 	function handleFailure(response){
 		alert("Fail:"+response);
 	}
-}
+};
 
 famtree.ignore = function(s,o){
-	}
+	};
 
 famtree.dataload_fail = function(s,o){
 	Ext.Msg.show({
-		title:'Error:',
-		msg: o.message,
+		title: famtree.getPhrase('Error'),
+		msg: famtree.getPhrase(o.message),
 		buttons: Ext.Msg.OK,
 		minWidth: 360,
 		fn: famtree.logout,
 		animEl: 'elId',
 		icon: Ext.MessageBox.QUESTION
 	});
-}
+};
 
 
 famtree.win_close = function(w) {
 	w.close();
-}
+};
 
 famtree.close_window = function() {
 	MyDesktop.winlock=0;
 	Ext.WindowMgr.each(famtree.win_close);
-}
+};
 
 famtree.logout = function()
 {
@@ -251,22 +251,22 @@ famtree.logout = function()
 		window.location='index.html';
 	});
 	return;
-}
+};
 
 famtree.handle_return_exception = function(event, options, response, error)
 {
 	var json = Ext.decode(response.responseText);
 	if(json == undefined) {
-		Ext.Msg.alert("Action Failed", response.statusText + "<br>Status: " + response.status
-			+ "<br>Please try again later.");
+		Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
+			+ "<br>" + famtree.getPhrase("Please try again later"));
 		return;
 	}
 	if (json.failcode == -1) {
 		famtree.logout();
 	} else {
 		Ext.Msg.show({
-			title:'Error:',
-			msg: json.message,
+			title: famtree.getPhrase('Error'),
+			msg: famtree.getPhrase(json.message),
 			buttons: Ext.Msg.OK,
 			scope: this,
 			fn: famtree.logout,
@@ -274,22 +274,22 @@ famtree.handle_return_exception = function(event, options, response, error)
 			icon: Ext.MessageBox.QUESTION
 		});
 	}
-}
+};
 
 famtree.handle_server_exception = function(event, options, response, error)
 {
 	var json = Ext.decode(response.responseText);
 	if(json == undefined) {
-		Ext.Msg.alert("Action Failed", response.statusText + "<br>Status: " + response.status
-			+ "<br>Please try again later.");
+		Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
+			+ "<br>" + famtree.getPhrase("Please try again later"));
 		return;
 	}
 	if (json.failcode == -1) {
 		famtree.logout();
 	} else {
 		Ext.Msg.show({
-			title:'Error:',
-			msg: json.message,
+			title: famtree.getPhrase('Error'),
+			msg: famtree.getPhrase(json.message),
 			buttons: Ext.Msg.OK,
 			scope: this,
 			fn: function() {
@@ -299,7 +299,7 @@ famtree.handle_server_exception = function(event, options, response, error)
 			icon: Ext.MessageBox.QUESTION
 		});
 	}
-}
+};
 
 /* seems above functions famtree.handle_return_exception and famtree.handle_server_exception don't work in right way.
    famtree.handle_return_exception, will certernly logout; the this.win_close() in famtree.handle_server_exception need to be
@@ -309,16 +309,16 @@ famtree.handle_back_exception = function(event, options, response, error)
 {
 	var json = Ext.decode(response.responseText);
 	if(json == undefined) {
-		Ext.Msg.alert("Action Failed", response.statusText + "<br>Status: " + response.status
-			+ "<br>Please try again later.");
+		Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
+			+ "<br>" + famtree.getPhrase("Please try again later"));
 		return;
 	}
 	if (json.failcode == -1) {
 		famtree.logout();
 	} else {
 		Ext.Msg.show({
-			title:'Error:',
-			msg: json.message,
+			title: famtree.getPhrase('Error'),
+			msg: famtree.getPhrase(json.message),
 			buttons: Ext.Msg.OK,
 			minWidth: 360,
 			scope: this,
@@ -330,10 +330,10 @@ famtree.handle_back_exception = function(event, options, response, error)
 			icon: Ext.MessageBox.QUESTION
 		});
 	}
-}
+};
 
 famtree.doServerAction = function(param, doAction, scope, loadMask, timeout) {
-	if(loadMask) Ext.Msg.wait('Processing...', 'Please Wait');
+	if(loadMask) Ext.Msg.wait(famtree.getPhrase('Processing') + '...', famtree.getPhrase('Please Wait'));
 	famtree.DataLoaderAlt({
 		url: 'actionServlet',
 		param: param,
@@ -343,31 +343,31 @@ famtree.doServerAction = function(param, doAction, scope, loadMask, timeout) {
 				if(result.failcode != -2)
 					famtree.logout();
 				else
-					Ext.Msg.alert('Fail', result.message);
+					Ext.Msg.alert(famtree.getPhrase('Fail'), famtree.getPhrase(result.message));
 			} else {
 				if(loadMask) Ext.Msg.hide();
 				doAction(scope, result);
 			}
 		},
 		fail: function(scope, result) {
-			Ext.Msg.alert('Warning', 'Server action failed: ' + result.message);
+			Ext.Msg.alert(famtree.getPhrase('Warning'), famtree.getPhrase('Server action failed') + ': ' + famtree.getPhrase(result.message));
 		},
 		timeout: timeout
 	});
-}
+};
 
 /****************************************************
  * doServerAction2 will call the call back function even the result.success is false
  * */
 famtree.doServerAction2 = function(param, doAction, scope, loadMask) {
-	if(loadMask) Ext.Msg.wait('Processing...', 'Please Wait');
+	if(loadMask) Ext.Msg.wait(famtree.getPhrase('Processing') + '...', famtree.getPhrase('Please Wait'));
 	famtree.DataLoader('actionServlet', param, scope,
 		function(scope, result) {
 			if(result.success == 'false'){
 				if(result.failcode != -2)
 					famtree.logout();
 				else {
-					Ext.Msg.alert('Fail', result.message);
+                                        Ext.Msg.alert(famtree.getPhrase('Fail'), famtree.getPhrase(result.message));
 					doAction(scope, result);
 				}
 			} else {
@@ -376,10 +376,10 @@ famtree.doServerAction2 = function(param, doAction, scope, loadMask) {
 			}
 		},
 		function(scope, result) {
-			Ext.Msg.alert('Warning', 'Server action failed: ' + result.message);
+			Ext.Msg.alert(famtree.getPhrase('Warning'), famtree.getPhrase('Server action failed') + ': ' + famtree.getPhrase(result.message));
 		}
 	);
-}
+};
 
 // General message box for confirming action
 // msg: the message to disply
@@ -388,15 +388,15 @@ famtree.doServerAction2 = function(param, doAction, scope, loadMask) {
 famtree.confirmMessageBox = function(msg, action, scope, buttons) {
 	if(scope == undefined) scope = this;
 	Ext.MessageBox.buttonText = {
-		ok : "OK",
-		cancel : "Cancel",
-		yes : "Yes",
-		no : "No"
+		ok : famtree.getPhrase("OK"),
+		cancel : famtree.getPhrase("Cancel"),
+		yes : famtree.getPhrase("Yes"),
+		no : famtree.getPhrase("No")
 	};
 
 	Ext.MessageBox.show({
 		scope: scope,
-		title:'Confirm',
+		title: famtree.getPhrase('Confirm'),
 		msg: msg,
 		width: 450,
 
@@ -415,18 +415,18 @@ famtree.confirmMessageBox = function(msg, action, scope, buttons) {
 		},
 		icon: Ext.MessageBox.QUESTION
 	});
-}
+};
 
 famtree.promptMessageBox = function(msg, action, scope) {
 	if(scope == undefined) scope = this;
 	Ext.MessageBox.buttonText = {
-		ok : "OK",
-		cancel : "Cancel",
-		yes : "Yes",
-		no : "No"
+		ok : famtree.getPhrase("OK"),
+		cancel : famtree.getPhrase("Cancel"),
+		yes : famtree.getPhrase("Yes"),
+		no : famtree.getPhrase("No")
 	};
 
-	Ext.Msg.prompt('Confirm', msg,
+	Ext.Msg.prompt(famtree.getPhrase('Confirm'), msg,
 		function(btn, text){
 			if (btn=="yes" || btn=='ok') {
 				action(scope, text);
@@ -436,18 +436,18 @@ famtree.promptMessageBox = function(msg, action, scope) {
 			return false;
 		}
 		, scope);
-}
+};
 
 famtree.commentBox = function(title, msg, action, scope, initValue) {
 	if(scope == undefined) scope = this;
 	Ext.MessageBox.buttonText = {
-		ok : "OK",
-		cancel : "Cancel",
-		yes : "Yes",
-		no : "No"
+		ok : famtree.getPhrase("OK"),
+		cancel : famtree.getPhrase("Cancel"),
+		yes : famtree.getPhrase("Yes"),
+		no : famtree.getPhrase("No")
 	};
 
-	Ext.Msg.prompt(title, msg,
+	Ext.Msg.prompt(famtree.getPhrase(title), famtree.getPhrase(msg),
 		function(btn, text){
 			if (btn=="yes" || btn=='ok') {
 				action(scope, text);
@@ -457,22 +457,22 @@ famtree.commentBox = function(title, msg, action, scope, initValue) {
 			return false;
 		}
 		, scope, true, initValue);
-}
+};
 
 famtree.noteBox = function(title, msg, initValue, action, scope) {
 	if(scope == undefined) scope = this;
 	Ext.MessageBox.buttonText = {
-		ok : "OK",
-		cancel : "Cancel",
-		yes : "Yes",
-		no : "No"
+		ok : famtree.getPhrase("OK"),
+		cancel : famtree.getPhrase("Cancel"),
+		yes : famtree.getPhrase("Yes"),
+		no : famtree.getPhrase("No")
 	};
 
 	var vpSize = Ext.getBody().getViewSize();
 	Ext.Msg.maxWidth = vpSize.width * 0.95;
 	Ext.Msg.show({
-		title: title,
-		msg: msg,
+		title: famtree.getPhrase(title),
+		msg: famtree.getPhrase(msg),
 		value: initValue,
 		prompt: true,
 		width: vpSize.width * 0.8,
@@ -488,7 +488,7 @@ famtree.noteBox = function(title, msg, initValue, action, scope) {
 		},
 		buttons: action ? Ext.MessageBox.OKCANCEL : Ext.MessageBox.OK
 	});
-}
+};
 
 famtree.blankStore = function() {
 	var gStore = new Ext.data.JsonStore({
@@ -501,7 +501,7 @@ famtree.blankStore = function() {
 		}]
 	});
 	return gStore;
-}
+};
 
 famtree.generalStore = function(url, params, root, autoLoad, remoteSort) {
 	var gStore = new Ext.data.JsonStore({
@@ -530,8 +530,7 @@ famtree.generalStore = function(url, params, root, autoLoad, remoteSort) {
 		});
 	*/
 	return gStore;
-}
-
+};
 
 famtree.simpleStore = function() {
 	var gStore = new Ext.data.JsonStore({
@@ -544,7 +543,7 @@ famtree.simpleStore = function() {
 		}]
 	});
 	return gStore;
-}
+};
 
 famtree.userList = function(project_id, autoLoad) {
 	var action = 'viewUsers';
@@ -566,26 +565,17 @@ famtree.userList = function(project_id, autoLoad) {
 			project_id: project_id
 		},
 		'users', false);
-}
+};
 
 famtree.groupList = function(autoLoad) {
-	if(autoLoad == true)
-		return famtree.generalStore('actionServlet',
+        return famtree.generalStore('actionServlet',
 		{
 			dowhat: 'Admin',
 			action: 'getGroupList',
 			shorted: 1
 		},
-		'groups', true);
-	else
-		return famtree.generalStore('actionServlet',
-		{
-			dowhat: 'Admin',
-			action: 'getGroupList',
-			shorted: 1
-		},
-		'groups', false);
-}
+		'groups', autoLoad);
+};
 
 famtree.getGlobal = function(){
 
@@ -609,7 +599,7 @@ famtree.getGlobal = function(){
 			MyDesktop.version=o.macro.VERSION;
 		}catch(e){
 			Ext.Msg.show({
-				title:'Error:',
+				title: famtree.getPhrase('Error'),
 				msg: json,
 				buttons: Ext.Msg.OK,
 				minWidth: 360,
@@ -624,20 +614,20 @@ famtree.getGlobal = function(){
 	function handleFailure(response){
 		alert("Fail:"+response);
 	}
-}
+};
 
 famtree.htmlEncode = function(value) {
 	var a = Ext.util.Format.htmlEncode(value);
 	a = a.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
 	return a.replace(/\n/g, '<br>');
-}
+};
 
 famtree.autoWrap = function(value){
 	return '<p style="white-space:normal; margin:0; padding:0;">' + famtree.htmlEncode(value) + '</p>'
-}
+};
 famtree.autoWrapDiv = function(value){
 	return '<div style="display:inline; white-space:normal; margin:0; padding:0;">' + famtree.htmlEncode(value) + '</div>'
-}
+};
 famtree.informationCenter = function(title, format){
 	function createBox(t, s){
 		return ['<div class="msg">',
@@ -668,7 +658,7 @@ famtree.informationCenter = function(title, format){
 		duration: 1
 	});
 //(function(){win.close();}).defer(7000);
-}
+};
 
 // This function removes non-numeric characters
 famtree.stripNonNumeric = function( str ){
@@ -685,7 +675,7 @@ famtree.stripNonNumeric = function( str ){
 		}
 	}
 	return out;
-}
+};
 
 famtree.popWindow = function(url, name) {
 	var newwindow=window.open(url, name ,
@@ -693,7 +683,7 @@ famtree.popWindow = function(url, name) {
 	if (window.focus) {
 		newwindow.focus();
 	}
-}
+};
 
 famtree.ellipsisString = function(ml, text, width){
 	var tm = Ext.util.TextMetrics.createInstance(ml);
@@ -718,7 +708,7 @@ famtree.ellipsisString = function(ml, text, width){
 		w = tm.getWidth(tmp);
 	}
 	return tmp.substring(0,num-4) + '...';
-}
+};
 
 // join two object to one
 // keep obj1's values if there is same property in obj2
@@ -735,24 +725,24 @@ famtree.jointObject = function(obj1, obj2) {
 		str1 = str2.substring(0, str2.length-1) + "," + str1.substring(1);
 	}
 	return Ext.util.JSON.decode(str1);
-}
+};
 famtree.hasIllegalChar = function (inputStr){
 		var regex = /[%,',\\,\/]/;
 		return regex.test(inputStr);
-}
+};
 
 famtree.is4DiditNumber = function(inputStr) {
 	if(inputStr.length != 4) return false;
 	var regex = /\D/;
 	return !regex.test(inputStr);
-}
+};
 famtree.isDidit = function(inputStr) {
 	var regex = /\D/;
 	return !regex.test(inputStr);
-}
+};
 famtree.isFloat = function(str) {
 	return str == (1.0 * str);
-}
+};
 /**
  * return all the values of a object
  */
@@ -762,11 +752,11 @@ famtree.getObjectValues = function(obj) {
 		str += ',' + obj[o];
 	}
 	return '{' + str.substring(1) + '}';
-}
+};
 
 famtree.hideZero = function(v) {
 	return v==0 ? '' : v;
-}
+};
 
 /**
  * famtree.CustomWindow
@@ -826,13 +816,13 @@ famtree.CustomWindow = function(conf) {
 	}
 	return new Ext.Window(config);
 
-}
+};
 
 famtree.setSplitter = function(config) {
 	config.split = true;
 	config.collapseMode = 'mini';
 	config.collapsible = true;
-}
+};
 famtree.countEnter4IE = function(str, to) {
 	if (str.length == 0) return 0;
 	if (str.length < to) to = str.length;
@@ -854,7 +844,7 @@ famtree.countEnter4IE = function(str, to) {
 		
 	}
 	return counter;
-}
+};
 famtree.mac2long = function(str) {
 	if (str=='0') return 0;
 	if (str=='') return 0;
@@ -867,7 +857,7 @@ famtree.mac2long = function(str) {
 		if (isNaN(result)) return -1;
 	}
 	return result;
-}
+};
 famtree.long2mac = function(number) {
 	if (number == '' || number == 0 || number == undefined) return '0:0:0:0:0:0';
 
@@ -903,14 +893,14 @@ famtree.long2mac = function(number) {
 	var m1= number.toString(16);
 	return "" + m6 + ":" + m5 + ":" + m4 + ":" + m3 + ":" + m2 + ":" + m1;
 
-}
+};
 famtree.showinfo = function(msg) {
 	Ext.Msg.show({
-		title: 'Information',
-		msg: msg,
+		title: famtree.getPhrase('Information'),
+		msg: famtree.getPhrase(msg),
 		buttons: Ext.Msg.OK,
 		icon: Ext.MessageBox.INFO
 	});
-}
+};
 
 

@@ -30,7 +30,8 @@ famtree.startApp = function() {
             dowhat: 'Admin', action: 'getModules'
         }, 'results', true); 
 
-	famtree.welcomeMsg = 'Family Tree Builder - Welcome ' + famtree.global.user.fullname;
+	famtree.welcomeMsg = famtree.getPhrase(famtree.SYSTEM_NAME) + ' - '
+                + famtree.getPhrase('Welcome') + ' ' + famtree.global.user.fullname;
 
 	Ext.MessageBox.minWidth = 260;
 	var wp = Ext.get('wallpaper');
@@ -75,7 +76,7 @@ famtree.startApp = function() {
 	if(modules.builder) {
 		mainMenuItems.push({
 			id: 'famtree-builder',
-			text: 'Family Tree',
+			text: famtree.getPhrase('Family Tree'),
 			iconCls: 'request'
 		});
 	}
@@ -85,7 +86,7 @@ famtree.startApp = function() {
 	if(modules.Admin) {
 		mainMenuItems.push({
 			id: 'famtree-admin',
-			text: 'Admin',
+			text: famtree.getPhrase('Admin'),
 			iconCls: 'edit'
 		});
 		mainMenuItems.push(' ');
@@ -94,7 +95,7 @@ famtree.startApp = function() {
 
         mainMenuItems.push({
                 id: 'famtree-password',
-                text: 'Change Password',
+                text: famtree.getPhrase('Change Password'),
                 iconCls: 'edit',
                 handler: function() {
                         famtree.change_password(false);
@@ -104,7 +105,7 @@ famtree.startApp = function() {
         mainMenuItems.push(' ');
 
 	mainMenuItems.push({
-		text: 'Logout',
+		text: famtree.getPhrase('Logout'),
 		iconCls: 'logout',
 		scope: this,
 		handler: function(btn){
@@ -116,7 +117,7 @@ famtree.startApp = function() {
 	});
 
 //	mainMenuItems.push({
-//		text: 'Help',
+//		text: famtree.getPhrase('Help'),
 //		iconCls: 'pdf',
 //		scope: this,
 //		handler: function(btn){

@@ -33,16 +33,16 @@ famtree.FamtreePanel = function() {
             dowhat: 'OptPedigree',
             action: 'getPedigreeList'
         },
-        fields: ['id', 'pedigree_name', 'family_name', 'created'],
+        fields: ['id', 'pedigree_name', 'family_name', 'created', 'modified', 'totalIndividual', 'totalGeneration'],
         root: 'results',
         totalProperty: 'total'
     });
     
     var myPedigree = new Ext.grid.GridPanel({
-        title: 'My Pedigree List',
+        title: famtree.getPhrase('My Pedigree List'),
         store: dsPedigree,
         columns: [{
-            header: 'Pedigree Name',
+            header: famtree.getPhrase('Pedigree Name'),
             width: 300,
             dataIndex: 'pedigree_name',
             scope: this,
@@ -51,13 +51,13 @@ famtree.FamtreePanel = function() {
                 return String.format(htm, rec.id, this.id);
             }
         }, {
-            header: 'Family Name',
+            header: famtree.getPhrase('Family Name'),
             dataIndex: 'family_name'
         }, {
-            header: 'Create Time',
+            header: famtree.getPhrase('Create Time'),
             dataIndex: 'created'
         }, {
-            header: 'Action',
+            header: famtree.getPhrase('Action'),
             align: 'center',
             width: 150,
             dataIndex: 'id',
@@ -67,7 +67,12 @@ famtree.FamtreePanel = function() {
                 return String.format(htm, v);
             }
         }],
-    
+        tbar: [{
+            text: famtree.getPhrase('Create Pedigree'),
+            iconCls: 'add',
+            handler: function() {
+            }
+        }],
         bbar: new Ext.PagingToolbar({
             displayInfo: true,
             pageSize: this.pageSize,
@@ -87,7 +92,7 @@ famtree.FamtreePanel = function() {
             action: 'printOut',
             id: pedigreeId
         }, function() {
-            Ext.Msg.alert('Success', 'The printout will be sent to you when it is ready.');
+            Ext.Msg.alert(famtree.getPhrase('Success'), famtree.getPhrase('The printout will be email to you.'));
         }, this, true);
     };
 
