@@ -25,6 +25,8 @@
  */
 package com.ccdev.printout;
 
+import com.ccdev.famtree.bean.Individual;
+import com.ccdev.famtree.bean.Pedigree;
 import com.itextpdf.text.DocumentException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,12 +34,32 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import javax.persistence.EntityManager;
 
 /**
  *
  * @author Colin Cheng
  */
 public class GenPDF {
+    private int penPerPage = 5;
+    private TreeNode root;
+    private Pedigree pedigree;
+    private final EntityManager em;
+    GenPDF(EntityManager em) {
+        this.em = em;
+    }
+
+    public boolean printOut(Pedigree ped, Individual rootInd) {
+        this.pedigree = ped;
+        this.root = new TreeNode(rootInd);
+        if(!this.loadTree(rootInd)) return false;
+        return false;
+    }
+    
+    private boolean loadTree(Individual ind) {
+        
+        return true;
+    }
 
     /**
      * @param args the command line arguments
