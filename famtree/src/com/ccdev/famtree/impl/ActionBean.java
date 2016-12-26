@@ -61,7 +61,7 @@ import com.ccdev.famtree.bean.*;
 @Stateless
 @SuppressWarnings(value = {"unchecked"})
 public class ActionBean implements Action {
-        @PersistenceContext(unitName = "foshanshop")
+        @PersistenceContext(unitName = "ccdevfamily")
 	protected EntityManager em;
         
 	public Users login(String uname, String password, StringBuilder msg) {
