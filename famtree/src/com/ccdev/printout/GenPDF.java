@@ -58,16 +58,19 @@ public class GenPDF {
         this.root = new FamilyTreeNode(rootInd);
         
         this.indTable = ped.getIndividualTable();
-        if(!this.loadTree(root)) {
-            return false;
-        }
+        
+        TreeToPDF toPDF = new TreeToPDF(this, root, null);
+        toPDF.generatePDF("/tmp/test.pdf");
+//        if(!this.loadTree(root, true)) {
+//            return false;
+//        }
         return true;
     }
     
-    private boolean loadTree(FamilyTreeNode node) {
+    public boolean loadTree(FamilyTreeNode node, boolean first) {
         List<FamilyTreeNode> curList = new ArrayList<>();
         curList.add(node);
-        for(int i=1; i<genPerPage; i++) {
+        for(int i=(first ? 1 : 0); i<genPerPage; i++) {
             List<FamilyTreeNode> nextList = new ArrayList<>();
             for(FamilyTreeNode nd : curList) {
                 int nChild = loadChildren(nd);

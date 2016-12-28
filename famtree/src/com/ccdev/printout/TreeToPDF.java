@@ -120,6 +120,8 @@ public class TreeToPDF {
 	private PdfWriter writer;
 
 	private DrawConnection tableEvent;
+
+        private final GenPDF genPdf;
 	private final FamilyTreeNode root;
 	private final HashMap<String, PdfTemplate> connectors = new HashMap();
 	private BaseFont bfSongH;
@@ -658,7 +660,8 @@ public class TreeToPDF {
 
 	private URL cover;
 //	private URL ttfKaiTi;
-	TreeToPDF(FamilyTreeNode root, HashMap<String, FamilyTreeNode> individualList) {
+	TreeToPDF(GenPDF genPdf, FamilyTreeNode root, HashMap<String, FamilyTreeNode> individualList) {
+		this.genPdf = genPdf;
 		this.root = root;
 		this.failyName = root.getIndividual().getFamilyName();
 		this.individualList = individualList;
@@ -745,9 +748,12 @@ public class TreeToPDF {
 			printTitle();
 
 			this.pendingNodes.add(root);
+                        boolean isFirst = true;
 //			this.splitLate = this.layout == VERTICAL;
 			while(!pendingNodes.isEmpty()) {
 				FamilyTreeNode node = pendingNodes.remove(0);
+                                this.genPdf.loadTree(node, isFirst);
+                                if(isFirst) isFirst = false;
 				this.startLevel = node.getLevel();
 				this.endLevel = this.startLevel + this.generationPerPage;
 
@@ -773,7 +779,7 @@ public class TreeToPDF {
 			if(!this.notes.isEmpty()) printNotes();
 
 			System.out.println("current page: " + writer.getPageNumber());
-			printIndices();
+//			printIndices();
 		} catch (DocumentException ex) {
 			this.err.append(ex.getMessage());
 		} catch (IOException ex) {
@@ -958,6 +964,7 @@ public class TreeToPDF {
 				this.tableEvent.addSonConnecion(this.current_row, column1, column1+1,
 						this.getWidthPoint(ind.getPrintName(this.failyName), isLeadingNode), true);
 				this.pendingNodes.add(node);
+                                node.setFather(null);
 
 				cell.setCellEvent(new CellConnector(CellConnector.SOURCE, "" + ind.getId(), this.connectors,
 						this.layout, this.fontSmallName, this.fontSizeName));
@@ -1016,6 +1023,7 @@ public class TreeToPDF {
 			if(!node.isLeaf()) {
 				conn.setIs_last(true);
 				this.pendingNodes.add(node);
+                                node.setFather(null);
 			}
 			return;
 		}
