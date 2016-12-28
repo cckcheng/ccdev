@@ -25,12 +25,10 @@
  */
 package com.ccdev.printout;
 
-import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.Individual;
 import com.ccdev.famtree.bean.Pedigree;
 import com.ccdev.famtree.impl.myUtil;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,41 +55,35 @@ public class GenPDF {
     public String getError() {
         return this.err.toString();
     }
-
-    public boolean printOut(Pedigree ped, Individual rootInd) {
+    
+    public boolean printOut(Pedigree ped, Individual rootInd, File outFile) {
         this.pedigree = ped;
         this.root = new FamilyTreeNode(rootInd);
         
         this.indTable = ped.getIndividualTable();
 
-        String outFilename = "ped-" + ped.getId() + ".pdf";
-        File outFile = new File(TreeToPDF.OUTPUT_DIR + outFilename);
-        if(outFile.exists()) {
-            this.err.append("Processing, please wait...");
-            return false;
-        }
-        
         TreeToPDF toPDF = new TreeToPDF(this, root, null);
         if(ped.getPrintLayout() != null) toPDF.parseConfigStr("layout=" + ped.getPrintLayout());
-        if(!toPDF.generatePDF(outFilename)) {
+        if(!toPDF.generatePDF(outFile.getName())) {
             this.err.append(toPDF.getErrorMessage());
             return false;
         }
 
         String q = "Insert into pedigree_printout (pedigree_id,content,print_time) values(?1,?2,now())"
                 + " ON DUPLICATE KEY UPDATE content=?2,print_time=now()";
-        Query query = em.createNativeQuery(q);
         try {
+            Query query = em.createNativeQuery(q);
             query.setParameter(1, ped.getId());
             query.setParameter(2, Files.readAllBytes(outFile.toPath()));
             query.executeUpdate();
-            
+
             outFile.delete();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             this.err.append(ex.getMessage());
             return false;
         }
+
         return true;
     }
     

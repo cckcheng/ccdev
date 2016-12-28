@@ -29,7 +29,12 @@ import com.ccdev.famtree.DoAction;
 import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.*;
 import com.ccdev.printout.GenPDF;
+import com.ccdev.printout.TreeToPDF;
+import java.io.File;
 import java.util.List;
+import java.util.concurrent.Executor;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import net.sf.json.JSONArray;
@@ -112,11 +117,33 @@ public class OptPedigree implements DoAction {
             if(rootInd == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
         }
 
-        GenPDF proc = new GenPDF(em);
-        if(!proc.printOut(ped, rootInd)){
-            return myUtil.actionFail(proc.getError(), Macro.FAILCODE_IGNORE);
+        String outFilename = "ped-" + ped.getId() + ".pdf";
+        File outFile = new File(TreeToPDF.OUTPUT_DIR + outFilename);
+        if(outFile.exists()) {
+            return myUtil.actionFail("Processing, please wait...", Macro.FAILCODE_IGNORE);
         }
 
+        try {
+            InitialContext initialContext = new InitialContext();
+            Executor eb = (Executor) initialContext.lookup("java:module/async_executor");
+            final Pedigree fPed = ped;
+            final Individual fRootInd = rootInd;
+            final File fOutFile = outFile;
+            eb.execute( new Runnable() {
+                @Override
+                public void run() {
+                    GenPDF proc = new GenPDF(em);
+                    if(proc.printOut(fPed, fRootInd, fOutFile)) {
+                        // send success notification email
+                    } else {
+                        // send fail alert email
+                    }
+                }
+            } );
+        } catch (NamingException ex) {
+            ex.printStackTrace();
+            return myUtil.actionFail(Macro.ERR_SYSTEM);
+        }
         return myUtil.actionSuccess();
     }
     
