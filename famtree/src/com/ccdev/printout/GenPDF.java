@@ -60,6 +60,7 @@ public class GenPDF {
         this.indTable = ped.getIndividualTable();
         
         TreeToPDF toPDF = new TreeToPDF(this, root, null);
+        toPDF.parseConfigStr("layout=V");
         toPDF.generatePDF("/tmp/test.pdf");
 //        if(!this.loadTree(root, true)) {
 //            return false;
