@@ -82,6 +82,9 @@ public class Pedigree implements Serializable {
     @Size(max = 32)
     @Column(name = "individual_table")
     private String individualTable;
+    @Size(max = 16)
+    @Column(name = "print_layout")
+    private String printLayout;
 
     public Pedigree() {
         this.createTime = this.modifyTime = new Date();
@@ -163,6 +166,14 @@ public class Pedigree implements Serializable {
 
     public void setIndividualTable(String individualTable) {
         this.individualTable = individualTable;
+    }
+
+    public String getPrintLayout() {
+        return printLayout;
+    }
+
+    public void setPrintLayout(String printLayout) {
+        this.printLayout = printLayout;
     }
 
     @Override

@@ -60,6 +60,8 @@ import java.util.List;
  * @author Cheng
  */
 public class TreeToPDF {
+        public static final String OUTPUT_DIR = "/tmp/";
+
 	public static final int HORIZONTAL = 0;
 	public static final int VERTICAL = 1;
 	private boolean noBorder = true;	// set to false for debug
@@ -94,8 +96,7 @@ public class TreeToPDF {
 
 	private int lastPrintLevel = -1;
 	private boolean hasGenerationRow = true;	// indicate if the table's first row is generation
-	private int layout = VERTICAL;
-//	private int layout = HORIZONTAL;
+	private int layout = VERTICAL;  // set default to Vertial
 	private boolean appendIndex = true;
 
 	private float fTemp;
@@ -687,7 +688,7 @@ public class TreeToPDF {
 	private PdfPTable table;
 	List<FamilyTreeNode> pendingNodes = new ArrayList<FamilyTreeNode>();
 	List<List<String>> notes = new ArrayList<List<String>>();
-	public void generatePDF(String outputName) {
+	public boolean generatePDF(String outputName) {
 		String pdfName = (this.layout == VERTICAL ? "tmp_" + outputName : outputName);
 		this.doc = new Document(PageSize.A4);
 		if(this.layout == HORIZONTAL){
@@ -725,7 +726,7 @@ public class TreeToPDF {
 			this.fontTemp = new Font(bfChnMain, this.fontSizeTemp, Font.NORMAL);
 			this.fontGeneration = new Font(bfChnMain, this.fontSizeGeneration, Font.BOLD);
 
-			this.writer = PdfWriter.getInstance(doc, new FileOutputStream(pdfName));
+			this.writer = PdfWriter.getInstance(doc, new FileOutputStream(OUTPUT_DIR + pdfName));
 			doc.open();
 			if(this.cover != null) printCover();
 
@@ -789,18 +790,24 @@ public class TreeToPDF {
 
 		doc.close();
 
+                if(this.err.length() > 0) return false;
+
 		try {
 			if(this.layout == VERTICAL) {
-				rotatePdf(pdfName, outputName, 90);
-//				new File(pdfName).deleteOnExit();
+				rotatePdf(OUTPUT_DIR + pdfName, OUTPUT_DIR + outputName, 90, this.cover == null ? 1 : 2);
+				new File(OUTPUT_DIR + pdfName).delete();
 //			} else {
 //				copyPdf(pdfName, "test.pdf");
 			}
+                        
+                        return true;
 		} catch (IOException ex) {
 			this.err.append(ex.getMessage());
 		} catch (DocumentException ex) {
 			this.err.append(ex.getMessage());
 		}
+                
+                return false;
 	}
 
 	public void testPDF() throws DocumentException, FileNotFoundException, IOException{
@@ -1192,7 +1199,8 @@ public class TreeToPDF {
 //			t.addCell(temp);
 //		}
 
-		for(String info : ind.getInfo()) {
+                if(ind.hasInfo()) {
+                    for(String info : ind.getInfo()) {
 			float info_width = this.bfChnMain.getWidthPoint(info, this.fontSizeInfo);
 			int info_lines = (int) Math.ceil(info_width / (h-10-this.fontSizeInfo));
 			w = (info_lines) * this.fontSizeInfo;
@@ -1213,7 +1221,8 @@ public class TreeToPDF {
 //			c.setRotation(90);
 			if(this.noBorder)c.setBorder(0);
 			t.addCell(c);
-		}
+                    }
+                }
 
 		if(ind.hasSpouse()) {
 			w = this.fontSizeInfo;
@@ -1311,19 +1320,20 @@ public class TreeToPDF {
 		cell.addElement(p);
 	}
 
-	public static void rotatePdf(String src, String dest, int degree) throws IOException, DocumentException {
+	public static void rotatePdf(String src, String dest, int degree, int startPage) throws IOException, DocumentException {
 		PdfReader reader = new PdfReader(src);
 		int n = reader.getNumberOfPages();
 		int rot;
 		PdfDictionary pageDict;
-		for (int i = 2; i <= n; i++) {
+		for (int i = startPage; i <= n; i++) {
 			rot = reader.getPageRotation(i);
 			pageDict = reader.getPageN(i);
 			pageDict.put(PdfName.ROTATE, new PdfNumber(rot + degree));
 		}
 		PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(dest));
 		stamper.close();
-    }
+                reader.close();
+        }
 
 	public static void copyPdf(String src, String dest) throws IOException, DocumentException {
 		Document document = new Document();
@@ -1398,6 +1408,7 @@ public class TreeToPDF {
 			PdfContentByte cb = pcbs[PdfPTable.BACKGROUNDCANVAS];
 			cb.saveState();
 
+                        float yAdjust = (layout == VERTICAL ? 0 : this.name_offset * 0.5f);
 			float x0 = rect.getLeft();
 			float x1 = x0 + 2;
 			float x2 = x1 + this.name_width + 5;
@@ -1405,7 +1416,7 @@ public class TreeToPDF {
 			if(x2 > x3 - 5) x2 = x3 - 10;
 
 			float y0 = rect.getTop();
-			float y1 = y0 - this.name_offset;
+			float y1 = y0 - (this.name_offset + yAdjust);
 			float y2 = rect.getBottom();
 
 			if(this.splited) {
@@ -1461,7 +1472,7 @@ public class TreeToPDF {
 					PdfTemplate tpl = connectors.get(indId);
 					Chunk chk = new Chunk("转" + cb.getPdfWriter().getPageNumber() + "页", fontSmallName);
 					float x = 2;
-					float y = (h-fontSizeSmallName)/2 + 1;
+					float y = (h-fontSizeSmallName)/2 + 1 - yAdjust;
 					if(layout == VERTICAL) {
 						x = h - fontSizeName;
 						y = w - 2;

@@ -102,10 +102,13 @@ public class OptPedigree implements DoAction {
         Individual rootInd = null;
         if(rootIndId != null) {
             rootInd = myUtil.findIndividual(ped.getIndividualTable(), ped.getRootIndividualId(), em);
-        }
-        
-        if(rootInd == null) {
-            rootInd = myUtil.findIndividual(ped.getIndividualTable(), "father_id is null", em);
+            if(rootInd == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+        } else {
+            if(myUtil.getCountBySQL("Select count(id) from " + ped.getIndividualTable()
+                    + " Where pedigree_id=" + pedId, em) < 1) {
+                return myUtil.actionFail("Empty Pedigree", Macro.FAILCODE_IGNORE);
+            }
+            rootInd = myUtil.findIndividual(ped.getIndividualTable(), "pedigree_id=" + pedId + " and father_id is null", em);
             if(rootInd == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
         }
 
