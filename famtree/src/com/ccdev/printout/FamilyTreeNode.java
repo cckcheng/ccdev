@@ -113,6 +113,6 @@ public class FamilyTreeNode {
     }
     
     public int getLevel() {
-        return this.individual.getGen();
+        return this.individual.getGen() - 1;
     }
 }
