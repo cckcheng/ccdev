@@ -33,14 +33,14 @@ import java.util.List;
  *
  * @author ccheng
  */
-public class TreeNode {
+public class FamilyTreeNode {
     private Individual individual;
-    private TreeNode father;
+    private FamilyTreeNode father;
     
     private boolean leaf = false;
-    private List<TreeNode> children = new ArrayList<>();;
+    private List<FamilyTreeNode> children = new ArrayList<>();;
 
-    TreeNode(Individual ind) {
+    FamilyTreeNode(Individual ind) {
         this.individual = ind;
     }
 
@@ -52,11 +52,11 @@ public class TreeNode {
         this.individual = individual;
     }
 
-    public TreeNode getFather() {
+    public FamilyTreeNode getFather() {
         return father;
     }
 
-    public void setFather(TreeNode father) {
+    public void setFather(FamilyTreeNode father) {
         this.father = father;
     }
 
@@ -68,19 +68,27 @@ public class TreeNode {
         this.leaf = leaf;
     }
 
-    public void addChild(TreeNode child) {
+    public void addChild(FamilyTreeNode child) {
         this.children.add(child);
     }
     
-    public List<TreeNode> getChildren() {
+    public List<FamilyTreeNode> getChildren() {
         return this.children;
     }
     
-    public TreeNode getNextSibling() {
+    public FamilyTreeNode getFirstChild() {
+        for(FamilyTreeNode node : this.children) {
+            return node;
+        }
+        
+        return null;
+    }
+    
+    public FamilyTreeNode getNextSibling() {
         if(this.father == null) return null;
 
         boolean found = false;
-        for(TreeNode node : this.father.children) {
+        for(FamilyTreeNode node : this.father.children) {
             if(found) return node;
             if(node.equals(this)) found = true;
         }
@@ -88,4 +96,23 @@ public class TreeNode {
         return null;
     }
 
+    public FamilyTreeNode getPreviousSibling() {
+        if(this.father == null) return null;
+
+        FamilyTreeNode lastNode = null;
+        for(FamilyTreeNode node : this.father.children) {
+            if(node.equals(this)) break;
+            lastNode = node;
+        }
+
+        return lastNode;
+    }
+
+    public boolean isRoot() {
+        return this.father == null;
+    }
+    
+    public int getLevel() {
+        return this.individual.getGen();
+    }
 }

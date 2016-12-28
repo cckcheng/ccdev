@@ -26,7 +26,6 @@
 package com.ccdev.famtree.bean;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -63,7 +62,7 @@ public class Pedigree implements Serializable {
     @Column(name = "family_name")
     private String familyName;
     @Column(name = "root_individual_id")
-    private BigInteger rootIndividualId;
+    private Long rootIndividualId;
     @Basic(optional = false)
     @NotNull
     @Column(name = "create_time")
@@ -118,11 +117,11 @@ public class Pedigree implements Serializable {
         this.familyName = familyName;
     }
 
-    public BigInteger getRootIndividualId() {
+    public Long getRootIndividualId() {
         return rootIndividualId;
     }
 
-    public void setRootIndividualId(BigInteger rootIndividualId) {
+    public void setRootIndividualId(Long rootIndividualId) {
         this.rootIndividualId = rootIndividualId;
     }
 

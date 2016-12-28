@@ -711,4 +711,34 @@ public class myUtil {
 		return fmtFullTime.format(dt);
 	}
 
+        public static String INDIVIDUAL_FIELDS = 
+                "id, given_name, family_name, gender, alias" // 0-4
+                + ", birth, death, seq, gen";   // 5-
+    
+        public static Individual toIndividual(Object[] o) {
+            Individual ind = new Individual();
+            ind.setId(myUtil.LongWithNullToZero(o[0]));
+            ind.setGivenName(StringFunc.TrimedString(o[1]));
+            ind.setGen(myUtil.IntegerWithNullToZero(o[8]));
+            return ind;
+        }
+
+        public static Individual findIndividual(String indTable, long indId, EntityManager em) {
+            String q = "Select " + INDIVIDUAL_FIELDS + " From " + indTable
+                    + " where id=" + indId;
+            List<Object[]> rs = em.createNativeQuery(q).getResultList();
+            if(rs.isEmpty()) return null;
+            
+            return toIndividual(rs.get(0));
+        }
+
+        public static Individual findIndividual(String indTable, String cond, EntityManager em) {
+            if(cond == null || cond.isEmpty()) return null;
+            String q = "Select " + INDIVIDUAL_FIELDS + " From " + indTable
+                    + " where " + cond;
+            List<Object[]> rs = em.createNativeQuery(q).getResultList();
+            if(rs.isEmpty()) return null;
+            
+            return toIndividual(rs.get(0));
+        }
 }

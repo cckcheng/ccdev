@@ -28,6 +28,7 @@ package com.ccdev.famtree.impl;
 import com.ccdev.famtree.DoAction;
 import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.*;
+import com.ccdev.printout.GenPDF;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
@@ -92,6 +93,27 @@ public class OptPedigree implements DoAction {
     }
 
     private String printOut(Users user, HttpServletRequest request, EntityManager em) {
+        long pedId = myUtil.LongWithNullToZero(request.getParameter("id"));
+        if(pedId == 0L) return myUtil.actionFail(Macro.ERR_PARAM_REQUIRED);
+        Pedigree ped = em.find(Pedigree.class, pedId);
+        if(ped == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+        
+        Long rootIndId = ped.getRootIndividualId();
+        Individual rootInd = null;
+        if(rootIndId != null) {
+            rootInd = myUtil.findIndividual(ped.getIndividualTable(), ped.getRootIndividualId(), em);
+        }
+        
+        if(rootInd == null) {
+            rootInd = myUtil.findIndividual(ped.getIndividualTable(), "father_id is null", em);
+            if(rootInd == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+        }
+
+        GenPDF proc = new GenPDF(em);
+        if(!proc.printOut(ped, rootInd)){
+            return myUtil.actionFail(proc.getError(), Macro.FAILCODE_IGNORE);
+        }
+
         return myUtil.actionSuccess();
     }
     

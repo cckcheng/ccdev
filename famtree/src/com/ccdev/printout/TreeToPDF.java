@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -55,7 +54,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.tree.TreeNode;
 
 /**
  *
@@ -106,9 +104,9 @@ public class TreeToPDF {
 	private float mainCellWidth;
 	private float leadingCellWidth;
 	private PageHelper page_event;
-	private final HashMap<String, DefaultMutableTreeNode> individualList;
+	private final HashMap<String, FamilyTreeNode> individualList;
 
-	private HashMap<TreeNode, NodePosition> nodePos = new HashMap();
+	private HashMap<FamilyTreeNode, NodePosition> nodePos = new HashMap();
 	private StringBuilder err = new StringBuilder();
 	private Document doc;
 	private BaseFont bfChnMain;
@@ -122,7 +120,7 @@ public class TreeToPDF {
 	private PdfWriter writer;
 
 	private DrawConnection tableEvent;
-	private final DefaultMutableTreeNode root;
+	private final FamilyTreeNode root;
 	private final HashMap<String, PdfTemplate> connectors = new HashMap();
 	private BaseFont bfSongH;
 	private BaseFont bfSongV;
@@ -410,14 +408,14 @@ public class TreeToPDF {
 		p.addCell("");
 		tp = new PdfPTable(4);
 		tp.setWidths(tp_widths);
-		Individual ind = (Individual)root.getUserObject();
+		Individual ind = (Individual)root.getIndividual();
 		printIndexLine(index, tp, ind, w1, wp, ws);
 		p.addCell(tp);
 
 		this.pendingNodes.add(root);
 		int last_level = -1;
 		while(!this.pendingNodes.isEmpty()) {
-			DefaultMutableTreeNode node = this.pendingNodes.remove(0);
+			FamilyTreeNode node = this.pendingNodes.remove(0);
 			if(node.getLevel() != last_level) {
 				p.addCell("");
 				int level = node.getLevel() + 1;
@@ -429,7 +427,7 @@ public class TreeToPDF {
 				last_level = node.getLevel();
 			}
 
-			ind = (Individual)node.getUserObject();
+			ind = (Individual)node.getIndividual();
 			tp = new PdfPTable(1);
 			tp.addCell(generalCell(ind.getPrintName(this.failyName), this.fontSmallName, w1, true));
 			if(ind.hasSpouse()) {
@@ -439,10 +437,9 @@ public class TreeToPDF {
 
 			tp = new PdfPTable(4);
 			tp.setWidths(tp_widths);
-			for(Enumeration n = node.children();n.hasMoreElements();) {
-				node = (DefaultMutableTreeNode) n.nextElement();
-				if(!node.isLeaf()) this.pendingNodes.add(node);
-				ind = (Individual)node.getUserObject();
+                        for(FamilyTreeNode nd : node.getChildren()) {
+				if(!nd.isLeaf()) this.pendingNodes.add(nd);
+				ind = nd.getIndividual();
 				printIndexLine(index, tp, ind, w1, wp, ws);
 			}
 			p.addCell(tp);
@@ -467,19 +464,17 @@ public class TreeToPDF {
 		p.addCell(generalCell(index.get(id) + "页", this.fontSmallName, w2));
 		p.addCell(generalCell(ind.hasSpouse() ? ind.getSpouseName() : "", this.fontSmallName, w1));
 
-		DefaultMutableTreeNode node = this.individualList.get(id);
+		FamilyTreeNode node = this.individualList.get(id);
 		if(node.isLeaf()) {
 			p.completeRow();
 			return;
 		}
 
-		Enumeration n = node.children();
-		while(n.hasMoreElements()) {
-			node = (DefaultMutableTreeNode) n.nextElement();
-			Individual son = (Individual)node.getUserObject();
+		for(FamilyTreeNode nd : node.getChildren()) {
+			Individual son = nd.getIndividual();
 			s.append(", ").append(son.getPrintName(this.failyName));
-			if(index.containsKey(son.getId())) {
-				s.append("（").append(index.get(son.getId())).append("）");
+			if(index.containsKey("" + son.getId())) {
+				s.append("（").append(index.get("" + son.getId())).append("）");
 			}
 		}
 		p.addCell(generalCell(s.substring(2), this.fontSmallName, w3));
@@ -532,7 +527,7 @@ public class TreeToPDF {
 
 		List<Individual> inds = new ArrayList();
 		for(String id : index.keySet()) {
-			inds.add((Individual)this.individualList.get(id).getUserObject());
+			inds.add((Individual)this.individualList.get(id).getIndividual());
 		}
 		Collections.sort(inds);
 
@@ -662,15 +657,15 @@ public class TreeToPDF {
 	}
 
 	private URL cover;
-	private URL ttfKaiTi;
-	TreeToPDF(DefaultMutableTreeNode root, HashMap<String, DefaultMutableTreeNode> individualList) {
+//	private URL ttfKaiTi;
+	TreeToPDF(FamilyTreeNode root, HashMap<String, FamilyTreeNode> individualList) {
 		this.root = root;
-		this.failyName = ((Individual)root.getUserObject()).getFamilyName();
+		this.failyName = root.getIndividual().getFamilyName();
 		this.individualList = individualList;
 
 //		cover = this.getClass().getResource("logo.jpg");
 		cover = this.getClass().getResource("coverpage.pdf");
-		ttfKaiTi = this.getClass().getResource("simkai.ttf");
+//		ttfKaiTi = this.getClass().getResource("simkai.ttf");
 	}
 
 	public boolean hasError() {
@@ -686,7 +681,7 @@ public class TreeToPDF {
 	}
 
 	private PdfPTable table;
-	List<DefaultMutableTreeNode> pendingNodes = new ArrayList<DefaultMutableTreeNode>();
+	List<FamilyTreeNode> pendingNodes = new ArrayList<FamilyTreeNode>();
 	List<List<String>> notes = new ArrayList<List<String>>();
 	public void generatePDF(String outputName) {
 		String pdfName = (this.layout == VERTICAL ? "tmp_" + outputName : outputName);
@@ -728,7 +723,7 @@ public class TreeToPDF {
 
 			this.writer = PdfWriter.getInstance(doc, new FileOutputStream(pdfName));
 			doc.open();
-			printCover();
+			if(this.cover != null) printCover();
 
 			if(this.layout == VERTICAL){
 				doc.setPageSize(PageSize.A4.rotate());
@@ -752,7 +747,7 @@ public class TreeToPDF {
 			this.pendingNodes.add(root);
 //			this.splitLate = this.layout == VERTICAL;
 			while(!pendingNodes.isEmpty()) {
-				DefaultMutableTreeNode node = pendingNodes.remove(0);
+				FamilyTreeNode node = pendingNodes.remove(0);
 				this.startLevel = node.getLevel();
 				this.endLevel = this.startLevel + this.generationPerPage;
 
@@ -919,30 +914,32 @@ public class TreeToPDF {
 		doc.close();
 	}
 
-	private void fillTable(DefaultMutableTreeNode node) throws DocumentException {
+        /*
+	private void fillTable(FamilyTreeNode node) throws DocumentException {
 		if(node == null) return;
 
-		Individual ind = (Individual) node.getUserObject();
+		Individual ind = (Individual) node.getIndividual();
 		PdfPCell cell = new PdfPCell(new Phrase(ind.getPrintName(this.failyName), this.fontName));
 		if(node.getLeafCount() > 1) cell.setRowspan(node.getLeafCount());
 		table.addCell(cell);
 
 		if(node.isLeaf()) return;
-		printNode((DefaultMutableTreeNode) node.getFirstChild());
+		printNode(node.getFirstChild());
 //		cell.setBorder(0);
 //		Enumeration n = node.children();
 //		while(n.hasMoreElements()) {
-//			fillTable(table, (DefaultMutableTreeNode) n.nextElement());
+//			fillTable(table,  n.nextElement());
 //		}
 	}
+        */
 
 	private float getWidthPoint(String s, boolean isLeadingNode) {
 		if(isLeadingNode) return this.bfChnMain.getWidthPoint(s, this.fontSizeSmallName);
 		return this.bfChnMain.getWidthPoint(s, this.fontSizeName);
 	}
 
-	private void printNode(DefaultMutableTreeNode node) throws DocumentException {
-		Individual ind = (Individual) node.getUserObject();
+	private void printNode(FamilyTreeNode node) throws DocumentException {
+		Individual ind = (Individual) node.getIndividual();
 		boolean isLeadingNode = this.startLevel > 0 && this.startLevel == node.getLevel();
 
 		PdfPCell cell = null;
@@ -987,13 +984,13 @@ public class TreeToPDF {
 				int column1 = node.getLevel() - this.startLevel;
 				this.tableEvent.addSonConnecion(this.current_row, column1, column1+1,
 						this.getWidthPoint(ind.getPrintName(this.failyName), isLeadingNode));
-				printNode((DefaultMutableTreeNode) node.getFirstChild());
+				printNode(node.getFirstChild());
 			}
 		}
 	}
 
-	private void printNode(PdfPTable tb, DefaultMutableTreeNode node) throws DocumentException {
-		Individual ind = (Individual) node.getUserObject();
+	private void printNode(PdfPTable tb, FamilyTreeNode node) throws DocumentException {
+		Individual ind = (Individual) node.getIndividual();
 		boolean isLeadingNode = this.startLevel > 0 && this.startLevel == node.getLevel();
 		if(!isLeadingNode){
 			countMemberByLevel(node.getLevel());
@@ -1035,8 +1032,7 @@ public class TreeToPDF {
 		t0.setSplitLate(this.splitLate);
 		t0.getDefaultCell().setPadding(0);
 		if(this.noBorder) t0.getDefaultCell().setBorder(0);
-		for(Enumeration n = node.children(); n.hasMoreElements();) {
-			DefaultMutableTreeNode child = (DefaultMutableTreeNode) n.nextElement();
+		for(FamilyTreeNode child : node.getChildren()) {
 			if(num == 0) {
 				printNode(t0, child);
 			} else {
@@ -1055,11 +1051,11 @@ public class TreeToPDF {
 //		if(tb.calculateHeights(false) < );
 	}
 
-	private void printSibling(DefaultMutableTreeNode node) throws DocumentException {
+	private void printSibling(FamilyTreeNode node) throws DocumentException {
 		if(node.getLevel() == this.startLevel) return;
-		DefaultMutableTreeNode sibling = node.getNextSibling();
+		FamilyTreeNode sibling = node.getNextSibling();
 		if(sibling == null) {
-			printSibling((DefaultMutableTreeNode) node.getParent());
+			printSibling(node.getFather());
 		} else {
 			this.current_row++;
 			NodePosition pos = this.nodePos.get(node);
@@ -1068,13 +1064,12 @@ public class TreeToPDF {
 		}
 	}
 
-	private int getLeafCount(DefaultMutableTreeNode node) {
+	private int getLeafCount(FamilyTreeNode node) {
 		if(node.isLeaf() || node.getLevel() == this.endLevel) return 1;
 
 		int count = 0;
-		Enumeration n = node.children();
-		while(n.hasMoreElements()) {
-			count += getLeafCount((DefaultMutableTreeNode) n.nextElement());
+		for(FamilyTreeNode nd : node.getChildren()) {
+			count += getLeafCount(nd);
 		}
 		return count;
 	}

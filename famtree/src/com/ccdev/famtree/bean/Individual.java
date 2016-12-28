@@ -27,7 +27,6 @@ package com.ccdev.famtree.bean;
 
 import com.ccdev.famtree.impl.myUtil;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -44,8 +43,8 @@ public class Individual implements Serializable, Comparable {
     private String alias;
     private Date birth;
     private Date death;
-    private BigInteger fatherId;
-    private BigInteger motherId;
+    private Long fatherId;
+    private Long motherId;
     private long pedigreeId;
     private Short seq;
     private Integer gen;
@@ -119,19 +118,19 @@ public class Individual implements Serializable, Comparable {
         this.death = death;
     }
 
-    public BigInteger getFatherId() {
+    public Long getFatherId() {
         return fatherId;
     }
 
-    public void setFatherId(BigInteger fatherId) {
+    public void setFatherId(Long fatherId) {
         this.fatherId = fatherId;
     }
 
-    public BigInteger getMotherId() {
+    public Long getMotherId() {
         return motherId;
     }
 
-    public void setMotherId(BigInteger motherId) {
+    public void setMotherId(Long motherId) {
         this.motherId = motherId;
     }
 

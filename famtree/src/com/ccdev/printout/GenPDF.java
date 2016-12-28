@@ -27,13 +27,9 @@ package com.ccdev.printout;
 
 import com.ccdev.famtree.bean.Individual;
 import com.ccdev.famtree.bean.Pedigree;
-import com.itextpdf.text.DocumentException;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import com.ccdev.famtree.impl.myUtil;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.EntityManager;
 
 /**
@@ -41,26 +37,87 @@ import javax.persistence.EntityManager;
  * @author Colin Cheng
  */
 public class GenPDF {
-    private int penPerPage = 5;
-    private TreeNode root;
+    private StringBuilder err = new StringBuilder();
+    
+    private int genPerPage = 5;
+    private FamilyTreeNode root;
     private Pedigree pedigree;
+    
+    private String indTable;
     private final EntityManager em;
-    GenPDF(EntityManager em) {
+    public GenPDF(EntityManager em) {
         this.em = em;
+    }
+
+    public String getError() {
+        return this.err.toString();
     }
 
     public boolean printOut(Pedigree ped, Individual rootInd) {
         this.pedigree = ped;
-        this.root = new TreeNode(rootInd);
-        if(!this.loadTree(rootInd)) return false;
-        return false;
+        this.root = new FamilyTreeNode(rootInd);
+        
+        this.indTable = ped.getIndividualTable();
+        if(!this.loadTree(root)) {
+            return false;
+        }
+        return true;
     }
     
-    private boolean loadTree(Individual ind) {
+    private boolean loadTree(FamilyTreeNode node) {
+        List<FamilyTreeNode> curList = new ArrayList<>();
+        curList.add(node);
+        for(int i=1; i<genPerPage; i++) {
+            List<FamilyTreeNode> nextList = new ArrayList<>();
+            for(FamilyTreeNode nd : curList) {
+                int nChild = loadChildren(nd);
+                if(nChild == 0) continue;
+                nextList.addAll(nd.getChildren());
+            }
+            if(nextList.isEmpty()) {
+                curList.clear();
+                break;
+            }
+            curList = nextList;
+        }
         
+        for(FamilyTreeNode nd : curList) {
+            checkChildren(nd);
+        }
         return true;
     }
 
+    private int loadChildren(FamilyTreeNode node) {
+        String q = "Select " + myUtil.INDIVIDUAL_FIELDS + " From " + this.indTable
+                + " where father_id=" + node.getIndividual().getId()
+                + " order by seq,id";
+        List<Object[]> rs = em.createNativeQuery(q).getResultList();
+        if(rs.isEmpty()) {
+            node.setLeaf(true);
+            return 0;
+        }
+        
+        int total = 0;
+        for(Object[] o : rs) {
+            FamilyTreeNode nd = new FamilyTreeNode(myUtil.toIndividual(o));
+            nd.setFather(node);
+            node.addChild(nd);
+            total++;
+        }
+        
+        return total;
+    }
+    
+    private int checkChildren(FamilyTreeNode node) {
+        String q = "Select count(id) From " + this.indTable
+                + " where father_id=" + node.getIndividual().getId();
+        
+        int total = myUtil.getCountBySQL(q, em);
+        node.setLeaf(total == 0);
+        
+        return total;
+    }
+    
     /**
      * @param args the command line arguments
      */
