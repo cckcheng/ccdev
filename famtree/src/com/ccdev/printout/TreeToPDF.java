@@ -94,7 +94,8 @@ public class TreeToPDF {
 
 	private int lastPrintLevel = -1;
 	private boolean hasGenerationRow = true;	// indicate if the table's first row is generation
-	private int layout = HORIZONTAL;
+	private int layout = VERTICAL;
+//	private int layout = HORIZONTAL;
 	private boolean appendIndex = true;
 
 	private float fTemp;
@@ -791,7 +792,7 @@ public class TreeToPDF {
 		try {
 			if(this.layout == VERTICAL) {
 				rotatePdf(pdfName, outputName, 90);
-				new File(pdfName).deleteOnExit();
+//				new File(pdfName).deleteOnExit();
 //			} else {
 //				copyPdf(pdfName, "test.pdf");
 			}
