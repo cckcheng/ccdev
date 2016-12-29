@@ -46,7 +46,7 @@ import java.util.HashMap;
  */
 public class PageHelper extends PdfPageEventHelper{
 	private Font fontPageNumber;
-	private String leftHeader = "DAZUPU";
+	private String leftHeader = "FAMILY TREE";
 	private String rightHeader = "";
 	private final Font fontHeader;
 	private int layout = TreeToPDF.HORIZONTAL;
