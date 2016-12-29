@@ -15,7 +15,7 @@ public class Macro {
 
 
 	static final public boolean PASSWORD_UNCHECK = true;
-	static public int DEBUG_LEVEL = 5;
+//	static public int DEBUG_LEVEL = 5;  // move to System Config
 	static final public String version = "1.029";
 	static public int SESSION_TIMEOUT = 1000 * 60 * 15;
 	static final public String UPLOADFILES_PATH = "/famtree_upload/";

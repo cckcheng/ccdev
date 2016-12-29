@@ -15,5 +15,6 @@ public interface Action {
 	public void disableUser(Users user);
 	public void updateLastLogin(Users user);
 	public void download(Users suer,HttpServletRequest request,HttpServletResponse response,ServletContext context,ServletOutputStream op);
+        public void loadConfig();
 }
 

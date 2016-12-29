@@ -26,6 +26,7 @@
 package com.ccdev.printout;
 
 import com.ccdev.famtree.bean.Individual;
+import com.ccdev.famtree.impl.SystemConfig;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Chunk;
 import java.io.FileNotFoundException;
@@ -61,14 +62,14 @@ import java.util.List;
  */
 public class TreeToPDF {
         public static final String OUTPUT_DIR = "/tmp/";
-
 	public static final int HORIZONTAL = 0;
 	public static final int VERTICAL = 1;
-	private boolean noBorder = true;	// set to false for debug
+
+	private final boolean noBorder = !SystemConfig.getBoolean(SystemConfig.PRINT_TABLE_BORDER);
 	private boolean splitLate = false;
 	private boolean hasGenerationHeader = false;	// indicate if there is a generation header for table
 
-	private boolean use_nesttable = true;
+	private final boolean use_nesttable = SystemConfig.getBoolean(SystemConfig.USE_NEST_TABLE);
 
 	private int generationPerPage = 5;
 	private int firstGeneration = 1;
@@ -972,13 +973,13 @@ public class TreeToPDF {
 				this.tableEvent.addSonConnecion(this.current_row, column1, column1+1,
 						this.getWidthPoint(ind.getPrintName(this.failyName), isLeadingNode), true);
 				this.pendingNodes.add(node);
-                                node.setFather(null);
 
 				cell.setCellEvent(new CellConnector(CellConnector.SOURCE, "" + ind.getId(), this.connectors,
 						this.layout, this.fontSmallName, this.fontSizeName));
 			}
 			table.addCell(cell);
 			printSibling(node);
+                        node.setFather(null);
 		} else {
 			if(isLeadingNode) {
 				cell.setCellEvent(new CellConnector(CellConnector.DESTINATION, "" + ind.getId(), this.connectors,

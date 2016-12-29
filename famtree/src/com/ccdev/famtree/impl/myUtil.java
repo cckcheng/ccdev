@@ -49,7 +49,7 @@ import java.util.Date;
 public class myUtil {
 
 	public static final void dbg(int level, String msg) {
-		if (level > Macro.DEBUG_LEVEL) {
+		if (level > SystemConfig.getIntConfig(SystemConfig.DEBUG_LEVEL)) {
 			return;
 		}
 		System.out.println(msg);

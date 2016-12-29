@@ -28,20 +28,15 @@ package com.ccdev.famtree.impl;
 import java.util.*;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.persistence.NoResultException;
 
 import java.io.FileInputStream;
-import javax.persistence.Query;
 import java.io.File;
 import java.io.InputStream;
 import java.io.DataInputStream;
 import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import org.apache.commons.fileupload.util.Streams;
-import org.apache.commons.fileupload.ProgressListener;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -63,6 +58,11 @@ import com.ccdev.famtree.bean.*;
 public class ActionBean implements Action {
         @PersistenceContext(unitName = "ccdevfamily")
 	protected EntityManager em;
+
+        @Override
+	public void loadConfig() {
+		SystemConfig.loadConfig(em);
+	}
         
 	public Users login(String uname, String password, StringBuilder msg) {
 		try {
@@ -77,18 +77,22 @@ public class ActionBean implements Action {
 			Users u =(Users) em.createQuery(q).getSingleResult();
 			if (u == null) return null;
 			else {
-				if (uname.indexOf("@")>=0){
-				Date last_login = u.getLastLogin();
-				Date today_date = new Date();
-				if (last_login != null){
-					long diff = today_date.getTime() - last_login.getTime();
-					myUtil.dbg(5, "diff=" + diff);
-					if ((diff/(24 * 60 * 60 * 1000)) > 30  ){
-						disableUser(u);
-						msg.append("You did not use your account over 30 days.<br>Please contact administrator!");
-					}
-				}
-			  }
+//                            if (uname.indexOf("@")>=0){
+//				Date last_login = u.getLastLogin();
+//				Date today_date = new Date();
+//				if (last_login != null){
+//					long diff = today_date.getTime() - last_login.getTime();
+//					myUtil.dbg(5, "diff=" + diff);
+//					if ((diff/(24 * 60 * 60 * 1000)) > 180  ){
+//						disableUser(u);
+//						msg.append("You did not use your account over 30 days.<br>Please contact administrator!");
+//					}
+//				}
+//                            }
+			}
+                        
+                        if (u.getLevel() >= Macro.ADMIN_LEVEL) {
+				SystemConfig.loadConfig(em);
 			}
 			return u;
 		} catch (NoResultException e) {
