@@ -69,8 +69,8 @@ public class GenPDF {
             return false;
         }
 
-        String q = "Insert into pedigree_printout (pedigree_id,content,print_time) values(?1,?2,now())"
-                + " ON DUPLICATE KEY UPDATE content=?2,print_time=now()";
+        String q = "Insert into pedigree_printout (pedigree_id,content,print_time) values(?1,compress(?2),now())"
+                + " ON DUPLICATE KEY UPDATE content=compress(?2),print_time=now()";
         try {
             Query query = em.createNativeQuery(q);
             query.setParameter(1, ped.getId());
