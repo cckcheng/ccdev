@@ -114,6 +114,12 @@ public class ExpressTreeBuilder {
                     case ERROR_FIRST_GERERATION:
                         msg = "First Generation can not include brothers";
                         break;
+                    case ERROR_LINE_SHORT:
+                        msg = "Lines not enough";
+                        break;
+                    case ERROR_LINE_OVER:
+                        msg = "Lines over limit";
+                        break;
 
                     case ERROR_EXIST_INDIVIDUAL_NOT_LEAF:
                         msg = "The leading individual exist in DB, but is not a leaf.";
@@ -423,14 +429,14 @@ public class ExpressTreeBuilder {
             return false;
         }
 
-        String cond = "pedigree_id" + ped.getId();
+        String cond = "pedigree_id=" + ped.getId();
 
         List<Individual> tmpList = new ArrayList<>();
         List<List<String>> genMembers = this.allGenerationMembers.get(0);
         for(List<String> mm : genMembers) {
             for(String name : mm) {
                 Individual ind = myUtil.findIndividual(ped.getIndividualTable(), cond + " and gen=" + this.startGen
-                        + " and givenName='" + name + "'", em);
+                        + " and given_name='" + StringFunc.escapeChar(name, '\'') + "'", em);
                 if(ind == null) {
                     ind = new Individual(name);
                     ind.setGen(startGen);

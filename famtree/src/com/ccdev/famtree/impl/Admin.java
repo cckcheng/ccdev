@@ -263,7 +263,7 @@ public class Admin implements DoAction {
 		int level = Macro.OTHER_LEVEL;
 		if (null != level_s && level_s.equals("on")) {
 			level = Macro.ADMIN_LEVEL;
-			if (user.getLevel() != Macro.ADMIN_LEVEL)
+			if (user.getLevel() < Macro.ADMIN_LEVEL)
 				return myUtil.actionFail("Permission deny to set administrator!", Macro.FAILCODE_IGNORE);
 		}
 
@@ -316,7 +316,7 @@ public class Admin implements DoAction {
 		int level = Macro.OTHER_LEVEL;
 		if (null != level_s && level_s.equals("on")) {
 			level = Macro.ADMIN_LEVEL;
-			if (user.getLevel() != Macro.ADMIN_LEVEL)
+			if (user.getLevel() < Macro.ADMIN_LEVEL)
 				return myUtil.actionFail("Permission deny to set administrator!", Macro.FAILCODE_IGNORE);
 		}
 
@@ -355,7 +355,7 @@ public class Admin implements DoAction {
 		}
 
 		if (level > 0) {
-			if (level == Macro.ADMIN_LEVEL && user.getLevel() != Macro.ADMIN_LEVEL)
+			if (level == Macro.ADMIN_LEVEL && user.getLevel() < Macro.ADMIN_LEVEL)
 				return myUtil.actionFail("Permission deny to set administrator!", Macro.FAILCODE_IGNORE);
 			u.setLevel(level);
 		}
@@ -479,7 +479,7 @@ public class Admin implements DoAction {
 	}
 
 	private boolean have_permission(Users user, HttpServletRequest request, EntityManager em) {
-		if (user.getLevel() == Macro.ADMIN_LEVEL) {
+		if (user.getLevel() >= Macro.ADMIN_LEVEL) {
 			return true;
 		}
 		Users usr = em.find(Users.class, user.getId());

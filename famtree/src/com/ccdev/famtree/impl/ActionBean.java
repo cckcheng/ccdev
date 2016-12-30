@@ -135,7 +135,7 @@ public class ActionBean implements Action {
 
                 JSONObject modules = new JSONObject();
 
-                if (user.getLevel() == Macro.ADMIN_LEVEL) {
+                if (user.getLevel() >= Macro.ADMIN_LEVEL) {
                         modules.put(Macro.MODULE_NAME_BUILDER, "manager");
                         modules.put(Macro.MODULE_NAME_ADMIN, "manager");
 

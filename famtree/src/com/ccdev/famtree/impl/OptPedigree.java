@@ -151,11 +151,19 @@ public class OptPedigree implements DoAction {
     }
 
     public boolean allowModify(Users user, Pedigree ped, EntityManager em) {
-        return false;
+        if(user.getId() == ped.getCreatorId()) return true;
+        return myUtil.getCountBySQL("select count(*) from pedigree_users where pedigree_id=" + ped.getId()
+                + " and user_id=" + user.getId() + " and privilege>1", em) > 0;
+    }
+
+    public boolean allowView(Users user, Pedigree ped, EntityManager em) {
+        if(user.getId() == ped.getCreatorId()) return true;
+        return myUtil.getCountBySQL("select count(*) from pedigree_users where pedigree_id=" + ped.getId()
+                + " and user_id=" + user.getId() + " and privilege>=1", em) > 0;
     }
 
     private String batchImport(Users user, HttpServletRequest request, EntityManager em) {
-        if(myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+        if(!myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
 
         long pedId = myUtil.LongWithNullToZero(request.getParameter("id"));
         String input = StringFunc.TrimedString(request.getParameter("input"));

@@ -635,7 +635,7 @@ public class myUtil {
 	}
 
 	public static final boolean hasPermission(Users user, int module, EntityManager em) {
-		if (user.getLevel() == Macro.ADMIN_LEVEL) return true;
+		if (user.getLevel() >= Macro.ADMIN_LEVEL) return true;
 		String q = "Select bit_or(g.mask) from groups g join group_user gu on gu.user_id="
 				+ user.getId() + " And gu.group_id=g.id";
 		int mask = myUtil.getIntegerBySQL(q, em);
