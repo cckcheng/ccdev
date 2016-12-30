@@ -63,7 +63,7 @@ public class ExpressTreeBuilder {
     
     static final long MAX_INFILE_LENGTH = 1048576L;     // 1M
     
-    static final int ERROR_FILE_LENGTH_OVERLIMIT = 1;
+    static final int ERROR_INPUT_LENGTH_OVERLIMIT = 1;
     static final int ERROR_FILE_NOT_FOUND = 2;
     static final int ERROR_IO_EXCEPTION = 3;
     static final int ERROR_UNKNOWN_ENCODING = 4;
@@ -92,8 +92,8 @@ public class ExpressTreeBuilder {
             case Macro.LANGUAGE_ENGLISH:// English
                 msg = "Unknown";
                 switch(errorCode) {
-                    case ERROR_FILE_LENGTH_OVERLIMIT:
-                        msg = "File Length Over Limit: Max. " + MAX_INFILE_LENGTH;
+                    case ERROR_INPUT_LENGTH_OVERLIMIT:
+                        msg = "Input Length Over Limit: Max. " + MAX_INFILE_LENGTH;
                         break;
                     case ERROR_FILE_NOT_FOUND:
                         msg = "File Not Found";
@@ -119,6 +119,13 @@ public class ExpressTreeBuilder {
                         break;
                     case ERROR_LINE_OVER:
                         msg = "Lines over limit";
+                        break;
+
+                    case ERROR_CHILDREN_SHORT:
+                        msg = "Lines of children is less than the number of fathers";
+                        break;
+                    case ERROR_CHILDREN_OVER:
+                        msg = "Lines of children is more than the number of fathers";
                         break;
 
                     case ERROR_EXIST_INDIVIDUAL_NOT_LEAF:
@@ -208,7 +215,7 @@ public class ExpressTreeBuilder {
         }
 
         if(inFile.length() > MAX_INFILE_LENGTH) {
-            this.setError(ERROR_FILE_LENGTH_OVERLIMIT);
+            this.setError(ERROR_INPUT_LENGTH_OVERLIMIT);
             return false;
         }
         
@@ -233,6 +240,11 @@ public class ExpressTreeBuilder {
     }
     
     public boolean processInput(String input, Pedigree ped, EntityManager em) {
+        if(input.length() > MAX_INFILE_LENGTH) {
+            this.setError(ERROR_INPUT_LENGTH_OVERLIMIT);
+            return false;
+        }
+
         List<String> lines = new ArrayList<String>();
         BufferedReader reader = new BufferedReader(new StringReader(input));
         String s;
