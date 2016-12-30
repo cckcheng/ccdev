@@ -38,7 +38,7 @@ famtree = {
 var language = navigator.languages && navigator.languages[0] || // Chrome / Firefox
                     navigator.language ||   // All browsers
                     navigator.userLanguage; // IE <= 10
-language = 'zh'; //for test chinese, remove this line when official
+//language = 'zh'; //for test chinese, remove this line when official
 
 if(language.startsWith('en-')) {
     famtree.LANG_CODE = famtree.ENGLISH;
@@ -689,6 +689,9 @@ Ext.applyIf(famtree.PHRASE[famtree.CHINESE_SIMPLIFIED], {
     'does': ' ',
     'not': '不',
     'right': '对',
+    'express': '快速',
+    'import': '导入',
+    'submit': '提交',
     'match': '匹配'
 });
 

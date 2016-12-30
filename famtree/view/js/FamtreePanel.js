@@ -118,11 +118,79 @@ Ext.extend(famtree.FamtreePanel, Ext.TabPanel, {
         var tab_id = 'famtree-pedigree-' + rec.get('id');
         var tab = this.findById(tab_id);
         if(!tab) {
-            this.add({
-                id: tab_id,
-                title: rec.get('pedigree_name')
-            });
+            this.add(new famtree.FamtreeView(tab_id, rec));
         }
         this.setActiveTab(tab_id);
     }
 });
+
+famtree.FamtreeView = function(id, pedRec) {
+    var config = {
+        id: id,
+        title: pedRec.get('pedigree_name'),
+        tbar: [{
+            text: famtree.getPhrase('Express Import'),
+            iconCls: 'settings',
+            scope: this,
+            handler: function() {
+                famtree.batchImport(this, pedRec);
+            }
+        }]
+    };
+    
+    Ext.Panel.superclass.constructor.call(this, config);
+};
+
+Ext.extend(famtree.FamtreeView, Ext.Panel, {
+    
+});
+
+famtree.batchImport = function(owner, pedRec) {
+    var height = 480;
+    var fm = new Ext.FormPanel({
+        frame: true,
+        forceLayout: true,
+        autoHeight: true,
+        labelAlign: 'top',
+        items: [
+            {
+                xtype: 'textarea',
+                name: 'input',
+                anchor: '100%',
+                height: height,
+                allowBlank: false,
+                hideLabel: true
+            }
+        ],
+        
+        monitorValid: true,
+        buttons: [
+            {
+                text: famtree.getPhrase('Submit'),
+                formBind: true,
+                handler: function() {
+                    famtree.submitForm('actionServlet', fm.form, {
+                        dowhat: 'OptPedigree',
+                        action: 'batchImport',
+                        id: pedRec.get('id')
+                    }, function() {
+                        win.close();
+                        Ext.Msg.alert(famtree.getPhrase('Message'), famtree.getPhrase('Success'));
+                    });
+                }
+            }, {
+                text: famtree.getPhrase('Cancel'),
+                handler: function() {
+                    win.close();
+                }
+            }
+        ]
+    });
+
+    var win = famtree.CustomWindow({
+        title: famtree.getPhrase('Express Import'),
+        width: 370,
+        items: fm
+    });
+    win.show();
+};
