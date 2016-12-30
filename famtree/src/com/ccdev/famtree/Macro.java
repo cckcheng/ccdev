@@ -4,6 +4,10 @@ public class Macro {
 	static final public String SYSTEM_NAME = "Family Tree Builder";
 	static final public String PUBLIC_DOMAIN = "https://famtree.ccdev.app/famtree";
 
+        static final public int LANGUAGE_CHINESE_SIMPLIFIED = 1;
+        static final public int LANGUAGE_CHINESE_TRADITIONAL = 2;
+        static final public int LANGUAGE_ENGLISH = 5;
+
 	static public final String ALERT_PREFIX = Macro.SYSTEM_NAME + " Alert - ";
 
 	// define module name and mask associated to Group Priviledge mask

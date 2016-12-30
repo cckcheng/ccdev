@@ -40,7 +40,7 @@ public class FamilyTreeNode {
     private boolean leaf = false;
     private List<FamilyTreeNode> children = new ArrayList<>();;
 
-    FamilyTreeNode(Individual ind) {
+    public FamilyTreeNode(Individual ind) {
         this.individual = ind;
     }
 

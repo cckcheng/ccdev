@@ -56,6 +56,10 @@ public class Individual implements Serializable, Comparable {
         this.id = id;
     }
 
+    public Individual(String givenName) {
+        this.givenName = givenName;
+    }
+
     public Individual(Long id, String givenName, long pedigreeId) {
         this.id = id;
         this.givenName = givenName;

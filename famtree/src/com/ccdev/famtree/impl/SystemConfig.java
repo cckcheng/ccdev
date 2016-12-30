@@ -25,6 +25,7 @@
  */
 package com.ccdev.famtree.impl;
 
+import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.Config;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ public class SystemConfig {
 	public static final String DEBUG_LEVEL = "DEBUG_LEVEL";
 	public static final String DEVELOP_TEAM_EMAILS = "DEVELOP_TEAM_EMAILS";
         
+        public static final String LANGUAGE_CODE = "LANGUAGE_CODE";
+
         public static final String MAINTAIN_MODE = "MAINTAIN_MODE";
         public static final String USE_NEST_TABLE = "USE_NEST_TABLE";
         public static final String PRINT_TABLE_BORDER = "PRINT_TABLE_BORDER";
@@ -53,6 +56,7 @@ public class SystemConfig {
 
 	protected static final Map<String, String> configs = new HashMap<String, String>() {
             {
+                put(LANGUAGE_CODE, "" + Macro.LANGUAGE_ENGLISH);
                 put(DEBUG_LEVEL, "5");
                 put(IS_TEST_SERVER, "Y");
                 put(USE_NEST_TABLE, "N");

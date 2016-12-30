@@ -60,6 +60,9 @@ public class OptPedigree implements DoAction {
         } else if (act.equalsIgnoreCase("manageUsers")) {
                 this.log = myUtil.log(user, request, em);
                 result = manageUsers(user, request, em);
+        } else if (act.equalsIgnoreCase("batchImport")) {
+                this.log = myUtil.log(user, request, em);
+                result = batchImport(user, request, em);
         } else {
                 result = myUtil.actionFail("unknown action:" + act, Macro.FAILCODE_IGNORE);
         }
@@ -144,6 +147,29 @@ public class OptPedigree implements DoAction {
             ex.printStackTrace();
             return myUtil.actionFail(Macro.ERR_SYSTEM);
         }
+        return myUtil.actionSuccess();
+    }
+
+    public boolean allowModify(Users user, Pedigree ped, EntityManager em) {
+        return false;
+    }
+
+    private String batchImport(Users user, HttpServletRequest request, EntityManager em) {
+        if(myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+
+        long pedId = myUtil.LongWithNullToZero(request.getParameter("id"));
+        String input = StringFunc.TrimedString(request.getParameter("input"));
+        if(pedId == 0L) return myUtil.actionFail(Macro.ERR_PARAM_REQUIRED);
+        Pedigree ped = em.find(Pedigree.class, pedId);
+        if(ped == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+        
+        if(!allowModify(user, ped, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+        
+        ExpressTreeBuilder proc = new ExpressTreeBuilder(SystemConfig.getIntConfig(SystemConfig.LANGUAGE_CODE));
+        if(!proc.processInput(input, ped, em)) {
+            return myUtil.actionFail(proc.getError(), Macro.FAILCODE_IGNORE);
+        }
+
         return myUtil.actionSuccess();
     }
     
