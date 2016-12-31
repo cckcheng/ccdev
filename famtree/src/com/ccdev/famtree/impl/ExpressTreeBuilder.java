@@ -500,7 +500,7 @@ public class ExpressTreeBuilder {
 
     private Long recordIndividual(Pedigree ped, Individual ind,  EntityManager em) {
         String q = "Insert Into " + ped.getIndividualTable() + " set family_name=?1,given_name=?2"
-                + ",gen=?3,father_id=?4,seq=?5";
+                + ",gen=?3,father_id=?4,seq=?5,pedigree_id=" + ped.getId();
         Query query = em.createNativeQuery(q);
         query.setParameter(1, ped.getFamilyName());
         query.setParameter(2, ind.getGivenName());
