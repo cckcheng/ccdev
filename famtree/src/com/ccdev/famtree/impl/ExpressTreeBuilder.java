@@ -27,7 +27,7 @@ package com.ccdev.famtree.impl;
 
 import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.*;
-import com.ccdev.printout.FamilyTreeNode;
+import com.ccdev.famtree.printout.FamilyTreeNode;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
