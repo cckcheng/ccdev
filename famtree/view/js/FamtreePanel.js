@@ -41,6 +41,7 @@ famtree.FamtreePanel = function() {
     var myPedigree = new Ext.grid.GridPanel({
         title: famtree.getPhrase('My Pedigree List'),
         store: dsPedigree,
+        loadMask: true,
         columns: [{
             header: famtree.getPhrase('Pedigree Name'),
             width: 300,
