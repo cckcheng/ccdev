@@ -245,7 +245,7 @@ public class TreeToPDF {
 			tb = new PdfPTable(this.generationPerPage);
 		}
 		for(int i=start; i<=this.endLevel; i++) {
-			PdfPCell cell = new PdfPCell(new Phrase(getChineseGeneration(i), this.fontGeneration));
+			PdfPCell cell = new PdfPCell();
 			if(this.layout == TreeToPDF.VERTICAL) {
 				cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 				cell.setRotation(90);
@@ -253,6 +253,7 @@ public class TreeToPDF {
 				cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
 				cell.setPaddingLeft(6);
 			}
+                        cell.addElement(new Phrase(getChineseGeneration(i), this.fontGeneration));
 			if(this.noBorder) cell.setBorder(0);
 			tb.addCell(cell);
 		}
@@ -1131,9 +1132,8 @@ public class TreeToPDF {
 			}
 		}
 
-		PdfPCell cell = new PdfPCell();
+		PdfPCell cell = new PdfPCell(p);
 		cell.setPadding(5f);
-		cell.addElement(p);
 		if(isLeadingNode) {
 			cell.setPaddingTop(cell.getPaddingTop() + (this.fontSizeName - this.fontSizeSmallName)/2);
 		}
@@ -1409,7 +1409,6 @@ public class TreeToPDF {
 			PdfContentByte cb = pcbs[PdfPTable.BACKGROUNDCANVAS];
 			cb.saveState();
 
-                        float yAdjust = (layout == VERTICAL ? 0 : this.name_offset * 0.5f);
 			float x0 = rect.getLeft();
 			float x1 = x0 + 2;
 			float x2 = x1 + this.name_width + 5;
@@ -1417,7 +1416,7 @@ public class TreeToPDF {
 			if(x2 > x3 - 5) x2 = x3 - 10;
 
 			float y0 = rect.getTop();
-			float y1 = y0 - (this.name_offset + yAdjust);
+			float y1 = y0 - this.name_offset;
 			float y2 = rect.getBottom();
 
 			if(this.splited) {
@@ -1473,7 +1472,7 @@ public class TreeToPDF {
 					PdfTemplate tpl = connectors.get(indId);
 					Chunk chk = new Chunk("转" + cb.getPdfWriter().getPageNumber() + "页", fontSmallName);
 					float x = 2;
-					float y = (h-fontSizeSmallName)/2 + 1 - yAdjust;
+					float y = (h-fontSizeSmallName)/2 + 1;
 					if(layout == VERTICAL) {
 						x = h - fontSizeName;
 						y = w - 2;
