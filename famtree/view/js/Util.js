@@ -778,7 +778,7 @@ famtree.CustomWindow = function(conf) {
 		height = vpSize.height * anchor;
 	}
 	var config = {
-		id: conf.id ? conf.id : 'famtree-custom-win',
+		id: conf.id ? conf.id : Ext.id(null, 'famtree-custom-win'),
 		autoDestroy: true,
 		title: title,
 		layout:'fit',

@@ -72,6 +72,12 @@ famtree.FamtreePanel = function() {
             text: famtree.getPhrase('Create Pedigree'),
             iconCls: 'add',
             handler: function() {
+                famtree.doServerAction({
+                    dowhat: 'OptPedigree',
+                    action: 'manageUsers'
+                }, function() {
+                    Ext.Msg.alert('result', 'Success');
+                });
             }
         }],
         bbar: new Ext.PagingToolbar({
@@ -184,6 +190,12 @@ famtree.batchImport = function(owner, pedRec) {
                 handler: function() {
                     win.close();
                 }
+            }, {
+                text: famtree.getPhrase('Sample'),
+                iconCls: 'help',
+                handler: function() {
+                    famtree.ExpressImportSample();
+                }
             }
         ]
     });
@@ -192,6 +204,37 @@ famtree.batchImport = function(owner, pedRec) {
         title: famtree.getPhrase('Express Import'),
         width: 370,
         items: fm
+    });
+    win.show();
+};
+
+famtree.ExpressImportSample = function() {
+    var sample1 = {};
+    var sample2 = {};
+    sample1[famtree.ENGLISH] = '-1-<br>start ancester<br>-2-<br>';
+    sample1[famtree.CHINESE_SIMPLIFIED] = '-1-<br>始祖<br>-2-<br>长子，次子<br>-3-<br>长孙，次孙<br>-<br>-4-<br>四世祖<br>-'
+        + '<br><hr>说明：<br>同一代的总行数须与上一代的总人数相等，减号表示某支无子<br>-1-, -2-, -3- ... 为世数，必须连续';
+    sample2[famtree.ENGLISH] = '-4-<br>fouth generation<br>-5-<br>';
+    sample2[famtree.CHINESE_SIMPLIFIED] = '-4-<br>四世祖<br>-5-<br>长子，次子，三子<br>-6-<br>...'
+        + '<br><hr>说明：<br>可从谱中现有成员接续，该成员在现有谱中应无子存在';
+    var p1 = new Ext.Panel({
+        title: famtree.getPhrase('Sample 1'),
+        html: '<p>' + sample1[famtree.LANG_CODE] + '</p>'
+    });
+    var p2 = new Ext.Panel({
+        title: famtree.getPhrase('Sample 2'),
+        html: '<p>' + sample2[famtree.LANG_CODE] + '</p>'
+    });
+    var p = new Ext.TabPanel({
+        activeTab: 0,
+        height: 400,
+        items: [p1, p2]
+    });
+
+    var win = famtree.CustomWindow({
+        title: famtree.getPhrase('Sample'),
+        width: 370,
+        items: p
     });
     win.show();
 };

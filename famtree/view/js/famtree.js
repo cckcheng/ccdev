@@ -692,6 +692,7 @@ Ext.applyIf(famtree.PHRASE[famtree.CHINESE_SIMPLIFIED], {
     'express': '快速',
     'import': '导入',
     'submit': '提交',
+    'sample': '样本',
     'match': '匹配'
 });
 
