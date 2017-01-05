@@ -1101,41 +1101,43 @@ public class TreeToPDF {
 			c.setLocalDestination("to" + ind.getId());
 			pName = new Paragraph(c);
 			p.add(pName);
-		} else {
-			p.setLeading(this.fontSizeName);
-			Chunk c = new Chunk(s, this.fontName);
-			c.setLocalDestination("" + ind.getId());
-//			c.setLocalGoto("" + ind.getId());
-			c.setGenericTag("" + ind.getId());
-			pName = new Paragraph(c);
-			p.add(pName);
-			if(ind.hasInfo()) {
-				for(String info : ind.getInfo()){
-					pInfo = new Paragraph(info, this.fontInfo);
-					p.add(pInfo);
-				}
-			}
+                        PdfPCell cell = new PdfPCell(p);
+                        cell.setPadding(5f);
+                        cell.setPaddingTop(cell.getPaddingTop() + (this.fontSizeName - this.fontSizeSmallName)/2);
+                        return cell;
+                }
+                
+                p.setLeading(this.fontSizeName);
+                Chunk c = new Chunk(s, this.fontName);
+                c.setLocalDestination("" + ind.getId());
+//		c.setLocalGoto("" + ind.getId());
+                c.setGenericTag("" + ind.getId());
+                pName = new Paragraph(c);
+                p.add(pName);
+                if(ind.hasInfo()) {
+                        for(String info : ind.getInfo()){
+                                pInfo = new Paragraph(info, this.fontInfo);
+                                p.add(pInfo);
+                        }
+                }
 
-			if(ind.hasSpouse()) {
-				pInfo = new Paragraph("配" + ind.getSpouseName(), this.fontInfo);
-				p.add(pInfo);
-			}
+                if(ind.hasSpouse()) {
+                        pInfo = new Paragraph("配" + ind.getSpouseName(), this.fontInfo);
+                        p.add(pInfo);
+                }
 
-			if(ind.hasNote()) {
-				this.idxNote0 ++;
-				this.notes.add(ind.getNotes());
-				c = new Chunk("（注" + this.idxNote0 + "）", this.fontInfo);
-				c.setLocalGoto("note" + this.idxNote0);
-				p.add(new Paragraph(c));
-			}
-		}
+                if(ind.hasNote()) {
+                        this.idxNote0 ++;
+                        this.notes.add(ind.getNotes());
+                        c = new Chunk("（注" + this.idxNote0 + "）", this.fontInfo);
+                        c.setLocalGoto("note" + this.idxNote0);
+                        p.add(new Paragraph(c));
+                }
 
-		PdfPCell cell = new PdfPCell(p);
-		cell.setPadding(5f);
-		if(isLeadingNode) {
-			cell.setPaddingTop(cell.getPaddingTop() + (this.fontSizeName - this.fontSizeSmallName)/2);
-		}
-
+		PdfPCell cell = new PdfPCell();
+		cell.setPaddingLeft(5f);
+		cell.setPaddingTop(0);
+                cell.addElement(p);
 		return cell;
 	}
 
