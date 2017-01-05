@@ -43,7 +43,9 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.util.Date;
-//
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 @SuppressWarnings(value = {"unchecked"})
 public class myUtil {
 
@@ -705,15 +707,60 @@ public class myUtil {
 		return fmtFullTime.format(dt);
 	}
 
+        public static String createIndividualTable(EntityManager em) {
+            String indTable = "individual_%04d";
+            int idx = 1;
+            String q = "select max(individual_table) from pedigree";
+            List<Object> rs = em.createNativeQuery(q).getResultList();
+            
+            if(!rs.isEmpty()) {
+                String maxTable = StringFunc.TrimedString(rs.get(0));
+                Pattern ptn = Pattern.compile("(\\d+)$");
+                Matcher m = ptn.matcher(maxTable);
+                if(m.find()) {
+                    idx = myUtil.GetInterger(m.group(1)) + 1;
+                }
+            }
+
+            indTable = String.format(indTable, idx);
+            
+            q = "CREATE TABLE " + indTable +
+                "(  `id` bigint(20) NOT NULL AUTO_INCREMENT," +
+                "  `given_name` varchar(32)  NOT NULL," +
+                "  `family_name` varchar(32)  DEFAULT NULL," +
+                "  `gender` tinyint(4) DEFAULT '1' COMMENT '1-male, 0-female'," +
+                "  `alias` varchar(32) DEFAULT NULL," +
+                "  `birth` date DEFAULT NULL," +
+                "  `death` date DEFAULT NULL," +
+                "  `father_id` bigint(20) DEFAULT NULL," +
+                "  `mother_id` bigint(20) DEFAULT NULL," +
+                "  `pedigree_id` bigint(20) NOT NULL," +
+                "  `seq` tinyint(4) DEFAULT NULL," +
+                "  `gen` int(11) DEFAULT NULL," +
+                "  `info` varchar(255) DEFAULT NULL," +
+                "  PRIMARY KEY (`id`)," +
+                "  KEY `father_id` (`father_id`)," +
+                "  KEY `mother_id` (`mother_id`)," +
+                "  KEY `pedigree_id` (`pedigree_id`)" +
+                ") ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci";
+            if(!myUtil.execDBUpdate(q, em)) return null;
+            return indTable;
+        }
+
         public static String INDIVIDUAL_FIELDS = 
                 "id, given_name, family_name, gender, alias" // 0-4
-                + ", birth, death, seq, gen";   // 5-
+                + ", birth, death, seq, gen, info";   // 5-9
     
         public static Individual toIndividual(Object[] o) {
             Individual ind = new Individual();
             ind.setId(myUtil.LongWithNullToZero(o[0]));
             ind.setGivenName(StringFunc.TrimedString(o[1]));
+            ind.setSeq((short)myUtil.IntegerWithNullToZero(o[7]));
             ind.setGen(myUtil.IntegerWithNullToZero(o[8]));
+            String info = StringFunc.TrimedString(o[9]);
+            if(!info.isEmpty()) {
+                ind.addInfo(info);
+            }
             return ind;
         }
 
