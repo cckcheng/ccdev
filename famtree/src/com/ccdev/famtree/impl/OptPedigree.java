@@ -75,7 +75,7 @@ public class OptPedigree implements DoAction {
     }
 
     private String manageUsers(Users user, HttpServletRequest request, EntityManager em) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return myUtil.actionSuccess();
     }
 
     private String getPedigreeList(Users user, HttpServletRequest request, EntityManager em) {

@@ -1,5 +1,8 @@
 package com.ccdev.famtree;
 
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
+
 public class Macro {
 	static final public String SYSTEM_NAME = "Family Tree Builder";
 	static final public String PUBLIC_DOMAIN = "https://famtree.ccdev.app/famtree";
@@ -70,6 +73,8 @@ public class Macro {
 	final public static int ERR_SEND_EMAIL = -202;
 
 	final public static int MAX_DISPLAY_LIMIT = 1048576; // 1M
+
+        public static final JsonBuilderFactory jsonfactory = Json.createBuilderFactory(null);
 
 	public static final String ErrorMessage(int err_code) {
 		String msg = "";

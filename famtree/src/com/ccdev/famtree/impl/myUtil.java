@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.persistence.NoResultException;
 import net.sf.json.JSONException;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -114,14 +113,9 @@ public class myUtil {
 	}
 
 	public static final String actionSuccess() {
-		try {
-			JSONObject result = new JSONObject();
-			result.put("success", "true");
-			return result.toString();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "Exception caught: " + e.getMessage();
-		}
+            return Macro.jsonfactory.createObjectBuilder()
+                    .add("success", "true")
+                    .build().toString();
 	}
 
 	public static final String actionSuccess(JSONObject result) {
