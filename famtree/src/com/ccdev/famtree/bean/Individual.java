@@ -27,6 +27,7 @@ package com.ccdev.famtree.bean;
 
 import com.ccdev.famtree.impl.myUtil;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -177,24 +178,31 @@ public class Individual implements Serializable, Comparable {
         return "";
     }
     
-    public boolean hasInfo() {
-        // need modify
-        return false;
-    }
+    private List<String> notes = new ArrayList<>();
 
     public boolean hasNote() {
-        // need modify
-        return false;
+        return !this.notes.isEmpty();
     }
 
     public List<String> getNotes() {
-        // need modify
-        return null;
+        return this.notes;
+    }
+
+    public void addNote(String note) {
+        this.notes.add(note);
+    }
+    
+    private List<String> infos = new ArrayList<>();
+    public boolean hasInfo() {
+        return !this.infos.isEmpty();
     }
 
     public List<String> getInfo() {
-        // need modify
-        return null;
+        return this.infos;
+    }
+    
+    public void addInfo(String info) {
+        this.infos.add(info);
     }
     
     @Override
