@@ -57,6 +57,8 @@ public class OptPedigree implements DoAction {
                 result = getPedigreeList(user, request, em);
         } else if (act.equalsIgnoreCase("printOut")) {
                 result = printOut(user, request, em);
+        } else if (act.equalsIgnoreCase("getIndividualList")) {
+                result = getIndividualList(user, request, em);
         } else if (act.equalsIgnoreCase("manageUsers")) {
                 this.log = myUtil.log(user, request, em);
                 result = manageUsers(user, request, em);
@@ -100,12 +102,91 @@ public class OptPedigree implements DoAction {
         return myUtil.actionSuccess(total, ar);
     }
 
-    private String printOut(Users user, HttpServletRequest request, EntityManager em) {
+    private String getIndividualList(Users user, HttpServletRequest request, EntityManager em) {
+        if(!myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+
         long pedId = myUtil.LongWithNullToZero(request.getParameter("id"));
         if(pedId == 0L) return myUtil.actionFail(Macro.ERR_PARAM_REQUIRED);
         Pedigree ped = em.find(Pedigree.class, pedId);
         if(ped == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+
+        if(!allowView(user, ped, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
         
+        String cond = "pedigree_id=" + pedId + makeFilter(request);
+        String qCount = "Select Count(*) from " + ped.getIndividualTable();
+        String q = "Select " + myUtil.INDIVIDUAL_FIELDS + " from " + ped.getIndividualTable();
+        if(!cond.isEmpty()) {
+            qCount += " Where " + cond;
+            q += " Where " + cond;
+        }
+        
+        JSONArray ar = new JSONArray();
+        int total = myUtil.getCountBySQL(qCount, em);
+        if(total == 0) return myUtil.actionSuccess(total, ar);
+
+        String sort = StringFunc.TrimedString(request.getParameter("sort"));
+        String direction = StringFunc.TrimedString(request.getParameter("dir"));
+        if(sort.isEmpty()) {
+            sort = "id";
+        } else if(sort.equalsIgnoreCase("given_name")) {
+            sort = "convert(given_name using gbk)"; // order by Pinyin
+        }
+        if(direction.isEmpty()) sort = "DESC";
+        q += " order by " + sort + " " + direction + myUtil.limitClause(request);
+        
+        List<Object[]> rs = em.createNativeQuery(q).getResultList();
+        for(Object[] o : rs) {
+            JSONObject obj = new JSONObject();
+            Individual ind = myUtil.toIndividual(o);
+            obj.put("id", ind.getId());
+            obj.put("given_name", ind.getGivenName());
+            obj.put("gen", ind.getGen());
+            if(ind.hasInfo()) {
+                String info = "";
+                for(String s : ind.getInfo()) info += s + "\n";
+                obj.put("info", info);
+            }
+            ar.put(obj);
+        }
+        return myUtil.actionSuccess(total, ar);
+    }
+    
+    private String makeFilter(HttpServletRequest request) {
+        String and = " and ";
+        StringBuilder sb = new StringBuilder();
+        
+        String givenName = StringFunc.TrimedString(request.getParameter("given_name"));
+        if(!givenName.isEmpty()) {
+            sb.append(and).append("given_name like '%").append(StringFunc.escapedString(givenName)).append("%'");
+        }
+        
+        String info = StringFunc.TrimedString(request.getParameter("info"));
+        if(!info.isEmpty()) {
+            sb.append(and).append("info like '%").append(StringFunc.escapedString(info)).append("%'");
+        }
+        
+        int startGen = myUtil.IntegerWithNullToZero(request.getParameter("start_gen"));
+        if(startGen > 0) {
+            sb.append(and).append("gen>=").append(startGen);
+        }
+        int endGen = myUtil.IntegerWithNullToZero(request.getParameter("end_gen"));
+        if(endGen > 0) {
+            sb.append(and).append("gen<=").append(endGen);
+        }
+//        if(sb.length() > 0) return sb.substring(and.length());    // keep the and
+        return sb.toString();
+    }
+
+    private String printOut(Users user, HttpServletRequest request, EntityManager em) {
+        if(!myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+
+        long pedId = myUtil.LongWithNullToZero(request.getParameter("id"));
+        if(pedId == 0L) return myUtil.actionFail(Macro.ERR_PARAM_REQUIRED);
+        Pedigree ped = em.find(Pedigree.class, pedId);
+        if(ped == null) return myUtil.actionFail(Macro.ERR_SYSTEM);
+
+        if(!allowView(user, ped, em)) return myUtil.actionFail(Macro.ERR_PERMISSION_DENY);
+      
         Long rootIndId = ped.getRootIndividualId();
         Individual rootInd = null;
         if(rootIndId != null) {
