@@ -111,11 +111,9 @@ famtree.FamtreePanel = function() {
     };
     
     Ext.Panel.superclass.constructor.call(this, config);
-    dsPedigree.load({
-        params: {
-            limit: this.pageSize
-        }
-    });
+    this.on('render', function(p){
+        dsPedigree.load({params: {limit: this.pageSize}});
+    }, this);
 };
 
 Ext.extend(famtree.FamtreePanel, Ext.TabPanel, {
@@ -125,13 +123,139 @@ Ext.extend(famtree.FamtreePanel, Ext.TabPanel, {
         var tab_id = 'famtree-pedigree-' + rec.get('id');
         var tab = this.findById(tab_id);
         if(!tab) {
-            this.add(new famtree.FamtreeView(tab_id, rec));
+            this.add(new famtree.FamtreeView(this, tab_id, rec));
         }
         this.setActiveTab(tab_id);
     }
 });
 
-famtree.FamtreeView = function(id, pedRec) {
+famtree.FamtreeView = function(owner, id, pedRec) {
+    var dsIndividual = new Ext.data.JsonStore({
+        url: 'actionServlet',
+        remoteSort: true,
+        sortInfo: {
+            field: 'gen',
+            dir: 'ASC'
+        },
+        fields: [
+            'id', 'given_name', 'gen', 'info'
+        ],
+        totalProperty: 'total',
+        root: 'results',
+        baseParams: {
+            dowhat: 'OptPedigree',
+            action: 'getIndividualList',
+            id: pedRec.get('id')
+        }
+    });
+
+    function search() {
+        var form = filter.form;
+        if(!form) return;
+        if(!form.isValid()){
+                Ext.Msg.alert('Error', 'Please amend the invalid field(s).');
+                return;
+        }
+        dsIndividual.baseParams = Ext.applyIf({
+            dowhat: 'OptPedigree',
+            action: 'getIndividualList',
+            id: pedRec.get('id')
+        }, form.getValues());
+        dsIndividual.load({params: {limit: owner.pageSize}});
+    }
+    
+    var filter = new Ext.FormPanel({
+        region: 'north',
+        title: famtree.getPhrase('Filter'),
+        autoHeight: true,
+        frame: true,
+        layout: 'column',
+        border: false,
+        bodyBorder: false,
+        hideBorders: true,
+
+        keys: {
+                key: [10,13],
+                fn: search
+        },
+
+        defaults: {
+                layout: 'form',
+                border: false,
+                labelAlign: 'right',
+                labelWidth: 80
+        },
+        items: [{
+                items: {
+                        xtype: 'textfield',
+                        name: 'given_name',
+                        fieldLabel: famtree.getPhrase('Given Name')
+                }
+        },{
+                width: 160,
+                items: {
+                        xtype: 'numberfield',
+                        width: 60,
+                        name: 'start_gen',
+                        fieldLabel: famtree.getPhrase('Start Generation')
+                }
+        },{
+                width: 160,
+                items: {
+                        xtype: 'numberfield',
+                        width: 60,
+                        name: 'end_gen',
+                        fieldLabel: famtree.getPhrase('End Generation')
+                }
+        },{
+                width: 300,
+                items: {
+                        xtype: 'textfield',
+                        name: 'info',
+                        width: 200,
+                        fieldLabel: famtree.getPhrase('Introduction')
+                }
+        }],
+        buttonAlign: 'left',
+        buttons: [{
+            text: famtree.getPhrase('Search'),
+            handler: search
+        }, {
+            text: famtree.getPhrase('Reset'),
+            handler: function() {
+                filter.form.reset();
+                search();
+            }
+        }]
+    });
+    
+    var grid = new Ext.grid.GridPanel({
+        region: 'center',
+        store: dsIndividual,
+        loadMask: true,
+        autoExpandColumn: 'famtree-ind-introduction',
+//        viewConfig: {forceFit: true},
+        columns: [{
+            header: famtree.getPhrase('Given Name'),
+            sortable: true,
+            dataIndex: 'given_name'
+        }, {
+            header: famtree.getPhrase('Generation'),
+            sortable: true,
+//            fixed: true,
+            dataIndex: 'gen'
+        }, {
+            id: 'famtree-ind-introduction',
+            width: 500,
+            header: famtree.getPhrase('Introduction'),
+            dataIndex: 'info'
+        }],
+        bbar: new Ext.PagingToolbar({
+            displayInfo: true,
+            pageSize: owner.pageSize,
+            store: dsIndividual
+        })
+    });
     var config = {
         id: id,
         title: pedRec.get('pedigree_name'),
@@ -142,10 +266,15 @@ famtree.FamtreeView = function(id, pedRec) {
             handler: function() {
                 famtree.batchImport(this, pedRec);
             }
-        }]
+        }],
+        layout: 'border',
+        items: [filter, grid]
     };
     
     Ext.Panel.superclass.constructor.call(this, config);
+    this.on('render', function(p){
+            dsIndividual.load({params: {limit: owner.pageSize}});
+    }, this);
 };
 
 Ext.extend(famtree.FamtreeView, Ext.Panel, {

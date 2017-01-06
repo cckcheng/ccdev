@@ -348,6 +348,7 @@ famtree.PHRASE[famtree.CHINESE_SIMPLIFIED] = {
     'Family': '家庭',
     'Family Tree': '家谱世系',
     'Family Name': '姓氏',
+    'Given Name': '名字',
     'My': '我的',
     'Ok': '确定',
     'Old': '旧',
@@ -693,6 +694,10 @@ Ext.applyIf(famtree.PHRASE[famtree.CHINESE_SIMPLIFIED], {
     'import': '导入',
     'submit': '提交',
     'sample': '样本',
+    'filter': '检索',
+    'generation': '世数',
+    'end': '结束',
+    'introduction': '介绍',
     'match': '匹配'
 });
 
