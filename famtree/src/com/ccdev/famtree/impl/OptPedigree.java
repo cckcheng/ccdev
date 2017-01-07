@@ -231,13 +231,13 @@ public class OptPedigree implements DoAction {
         return myUtil.actionSuccess();
     }
 
-    public boolean allowModify(Users user, Pedigree ped, EntityManager em) {
+    public static boolean allowModify(Users user, Pedigree ped, EntityManager em) {
         if(user.getId() == ped.getCreatorId()) return true;
         return myUtil.getCountBySQL("select count(*) from pedigree_users where pedigree_id=" + ped.getId()
                 + " and user_id=" + user.getId() + " and privilege>1", em) > 0;
     }
 
-    public boolean allowView(Users user, Pedigree ped, EntityManager em) {
+    public static boolean allowView(Users user, Pedigree ped, EntityManager em) {
         if(user.getId() == ped.getCreatorId()) return true;
         return myUtil.getCountBySQL("select count(*) from pedigree_users where pedigree_id=" + ped.getId()
                 + " and user_id=" + user.getId() + " and privilege>=1", em) > 0;
@@ -261,5 +261,44 @@ public class OptPedigree implements DoAction {
 
         return myUtil.actionSuccess();
     }
-    
+
+    public static String exportIndividuals(StringBuilder output, Users user, HttpServletRequest request, EntityManager em) {
+        if(!myUtil.hasPermission(user, Macro.MODULE_BUILDER, em)) {
+            output.append(Macro.ErrorMessage(Macro.ERR_PERMISSION_DENY));
+            return null;
+        }
+        long pedId = myUtil.LongWithNullToZero(request.getParameter("pedId"));
+        if(pedId == 0L) {
+            output.append(Macro.ErrorMessage(Macro.ERR_PARAM_REQUIRED));
+            return null;
+        }
+        Pedigree ped = em.find(Pedigree.class, pedId);
+        if(ped == null) {
+            output.append(Macro.ErrorMessage(Macro.ERR_SYSTEM));
+            return null;
+        }
+        
+        if(!allowModify(user, ped, em)) {
+            output.append(Macro.ErrorMessage(Macro.ERR_PERMISSION_DENY));
+            return null;
+        }
+        
+        output.append("ID,Name,Generation,Introduction\n");
+        String q = "Select " + myUtil.INDIVIDUAL_FIELDS + " from " + ped.getIndividualTable()
+                + " where pedigree_id=" + pedId + " order by gen,id";
+        List<Object[]> rs = em.createNativeQuery(q).getResultList();
+        for(Object[] o : rs) {
+            Individual ind = myUtil.toIndividual(o);
+            output.append(ind.getId()).append(",")
+                    .append(ind.getGivenName()).append(",")
+                    .append(ind.getGen()).append(",");
+            if(ind.hasInfo()) {
+                String info = "";
+                for(String s : ind.getInfo()) info += "\n" + s;
+                output.append('"').append(StringFunc.escapeChar(info.substring(1), '"')).append('"');
+            }
+            output.append("\n");
+        }
+        return StringFunc.validFileName("ped-" + ped.getPedigreeName()) + ".csv";
+    }
 }

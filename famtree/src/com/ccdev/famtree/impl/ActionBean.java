@@ -51,6 +51,9 @@ import com.ccdev.famtree.Action;
 import com.ccdev.famtree.DoAction;
 import com.ccdev.famtree.Macro;
 import com.ccdev.famtree.bean.*;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 @Stateless
@@ -381,12 +384,17 @@ public class ActionBean implements Action {
 	public void download(Users user, HttpServletRequest request, HttpServletResponse response, ServletContext context, ServletOutputStream op) {
 		myUtil.log(user, request, em);
 		String filetype = StringFunc.TrimedString(request.getParameter("filetype"));
-		myUtil.dbg(5, filetype);
-		if (filetype.equalsIgnoreCase("testlog")) {
-		} else if (filetype.equalsIgnoreCase("request")){
-
+		myUtil.dbg(5, "download filetype: " + filetype);
+		if (filetype.equalsIgnoreCase("individual")) {
+                    StringBuilder output = new StringBuilder();
+                    String outFileName  = OptPedigree.exportIndividuals(output, user, request, em);
+                    if(outFileName == null) {
+                        responseMessage(op, output.toString());
+                        return;
+                    }
+                    this.doTransfer(outFileName, output, response, context, op);
+		} else if (filetype.equalsIgnoreCase("printout")){
 			String archive_name = request.getParameter("archive_name");
-			myUtil.dbg("archive_name=" + archive_name);
 			if (archive_name.equals("")) return;
 
 			dwnfile(archive_name, response, context, op);
@@ -398,7 +406,15 @@ public class ActionBean implements Action {
 		}
 	}
 
-	private void doTransfer(String filename, StringBuffer sb, HttpServletResponse response, ServletContext context, ServletOutputStream op) {
+        private void responseMessage(ServletOutputStream op, String msg) {
+            try {
+                op.println(msg);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+	private void doTransfer(String filename, StringBuilder sb, HttpServletResponse response, ServletContext context, ServletOutputStream op) {
 		try {
 			String mimetype = context.getMimeType(filename);
 			//

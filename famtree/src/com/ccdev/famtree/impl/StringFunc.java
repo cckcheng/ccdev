@@ -203,6 +203,11 @@ public class StringFunc {
 		}
 		return ret;
 	}
+
+        public static String validFileName(String filename) {
+            String s = filename.replaceAll("[/\\\\:*?\"<>|\\s]", "-");
+            return s;
+        }
 }
 
 
