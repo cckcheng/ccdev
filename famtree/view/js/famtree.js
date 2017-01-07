@@ -33,6 +33,7 @@ famtree = {
     CHINESE_TRADITIONAL: 2,
     ENGLISH: 5,
     
+    SENTENCE: [],
     PHRASE: []
 };
 var language = navigator.languages && navigator.languages[0] || // Chrome / Firefox
@@ -50,6 +51,18 @@ if(language.startsWith('en-')) {
     famtree.LANG_CODE = famtree.ENGLISH;
 }
                 
+famtree.SENTENCE[famtree.ENGLISH] = {
+    'tooltip-express-import': 'Add batch individuals and build up tree',
+    'tooltip-export-individual': 'Export all individuals',
+    'tooltip-batch-update': 'Batch update individual information'
+};
+
+famtree.SENTENCE[famtree.CHINESE_SIMPLIFIED] = {
+    'tooltip-express-import': '批量导入家谱成员',
+    'tooltip-export-individual': '导出全部家谱成员',
+    'tooltip-batch-update': '批量更新家谱成员信息'
+};
+
 famtree.PHRASE[famtree.CHINESE_SIMPLIFIED] = {
 // the following is from web search
 'Access pattern': '访问模式',
@@ -691,7 +704,9 @@ Ext.applyIf(famtree.PHRASE[famtree.CHINESE_SIMPLIFIED], {
     'not': '不',
     'right': '对',
     'express': '快速',
+    'batch': '批量',
     'import': '导入',
+    'export': '导出',
     'submit': '提交',
     'sample': '样本',
     'filter': '检索',
@@ -710,6 +725,12 @@ function addLowerKey(obj) {
 
 addLowerKey(famtree.PHRASE[famtree.CHINESE_SIMPLIFIED]);
 addLowerKey(famtree.PHRASE[famtree.CHINESE_TRADITIONAL]);
+
+famtree.getSentence = function(key) {
+    if(Ext.isEmpty(key)) return '';
+    if(!famtree.SENTENCE[famtree.LANG_CODE]) return key;
+    return famtree.SENTENCE[famtree.LANG_CODE][key] || key;
+};
 
 famtree.getPhrase = function(phrase) {
     if(Ext.isEmpty(phrase)) return '';

@@ -262,9 +262,27 @@ famtree.FamtreeView = function(owner, id, pedRec) {
         tbar: [{
             text: famtree.getPhrase('Express Import'),
             iconCls: 'settings',
+            tooltip: famtree.getSentence('tooltip-express-import'),
             scope: this,
             handler: function() {
                 famtree.batchImport(this, pedRec);
+            }
+        },{
+            text: famtree.getPhrase('Export'),
+            iconCls: 'export',
+            tooltip: famtree.getSentence('tooltip-export-individual'),
+            scope: this,
+            handler: function() {
+                var url = Ext.urlEncode({pedId: pedRec.get('id')}, 'uploadServlet?filetype=individual');
+                window.open(url, "download_win");
+            }
+        },{
+            text: famtree.getPhrase('Batch Update'),
+            iconCls: 'edit',
+            tooltip: famtree.getSentence('tooltip-batch-update'),
+            scope: this,
+            handler: function() {
+                
             }
         }],
         layout: 'border',
