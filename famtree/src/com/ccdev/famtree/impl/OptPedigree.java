@@ -31,8 +31,11 @@ import com.ccdev.famtree.bean.*;
 import com.ccdev.famtree.printout.GenPDF;
 import com.ccdev.famtree.printout.TreeToPDF;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
@@ -204,9 +207,16 @@ public class OptPedigree implements DoAction {
         String outFilename = "ped-" + ped.getId() + ".pdf";
         File outFile = new File(TreeToPDF.OUTPUT_DIR + outFilename);
         if(outFile.exists()) {
-            return myUtil.actionFail("Processing, please wait...", Macro.FAILCODE_IGNORE);
+            return myUtil.actionFail("Processing, please com back later...", Macro.FAILCODE_IGNORE);
         }
 
+        try {
+            outFile.createNewFile();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return myUtil.actionFail(Macro.ERR_SYSTEM);
+        }
+        
         try {
             InitialContext initialContext = new InitialContext();
             Executor eb = (Executor) initialContext.lookup("java:module/async_executor");
