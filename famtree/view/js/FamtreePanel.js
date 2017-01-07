@@ -63,8 +63,8 @@ famtree.FamtreePanel = function() {
             width: 150,
             dataIndex: 'id',
             renderer: function(v, p, rec) {
-                var htm = '<img border=0 src="images/icons/treeicon.gif" style="cursor:hand" alt="generate PDF"';
-                htm += ' ext:qtip="生成PDF" onclick="javascript:famtree.FamtreePanel.prototype.printPedigree({0})" >';
+                var htm = '<img border=0 src="images/icons/treeicon.gif" style="cursor:hand" alt="download PDF"';
+                htm += ' ext:qtip="Download PDF" onclick="javascript:famtree.FamtreePanel.prototype.printPedigree({0})" >';
                 return String.format(htm, v);
             }
         }],
@@ -99,7 +99,7 @@ famtree.FamtreePanel = function() {
             action: 'printOut',
             id: pedigreeId
         }, function() {
-            Ext.Msg.alert(famtree.getPhrase('Success'), famtree.getPhrase('The printout will be email to you.'));
+            Ext.Msg.alert(famtree.getPhrase('Success'), famtree.getPhrase('Processing...please try later.'));
         }, this, true);
     };
 
