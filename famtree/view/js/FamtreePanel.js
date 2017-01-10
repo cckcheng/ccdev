@@ -248,6 +248,10 @@ famtree.FamtreeView = function(owner, id, pedRec) {
             id: 'famtree-ind-introduction',
             width: 500,
             header: famtree.getPhrase('Introduction'),
+            renderer: function(v, p, rec) {
+                if(!v) return v;
+                return '<div ext:qtip="' + famtree.htmlEncode(v) + '">' + v + '</div>';
+            },
             dataIndex: 'info'
         }],
         bbar: new Ext.PagingToolbar({
