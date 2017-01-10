@@ -120,7 +120,7 @@ famtree.group = function () {
 
         sortInfo: {field: 'name', direction: "ASC"}
     }),
-            this.ds.on({'loadexception': famtree.handle_return_exception, scope: this});
+            this.ds.on({'exception': famtree.handle_return_exception, scope: this});
     this.bbar = [{
             iconCls: 'add',
             pressed: true,
@@ -334,12 +334,7 @@ famtree.editGroup = function (which, ds, record) {
     if (which == 'new') {
         window.setTitle('Add Group');
         status.hide();
-        famtree.DataLoader('actionServlet',
-                {'dowhat': 'Admin', 'action': 'getUserList', 'shorted': 1},
-                this,
-                handle_newuserload,
-                famtree.handle_server_exception
-                );
+        famtree.doServerAction({'dowhat': 'Admin', 'action': 'getUserList', 'shorted': 1}, handle_newuserload, this, true);
     } else {
         var t_groupname = record.get('name');
         var t_descript = record.get('descript');
@@ -353,8 +348,7 @@ famtree.editGroup = function (which, ds, record) {
         descript.setValue(t_descript);
         if (tstatus == 1)
             status.setValue(true);
-        famtree.DataLoader('actionServlet', {'dowhat': 'Admin', 'action': 'getGroup', 'id': group_id}, this,
-                handle_edituserload, famtree.handle_server_exception);
+        famtree.doServerAction({'dowhat': 'Admin', 'action': 'getGroup', 'id': group_id}, handle_edituserload, this, true);
     }
     function changeUserManager(combo, record, index)
     {

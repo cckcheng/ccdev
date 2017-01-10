@@ -145,7 +145,7 @@ famtree.user = function () {
 
         sortInfo: {field: 'username', direction: "ASC"}
     });
-    this.ds.on({'loadexception': famtree.handle_return_exception, scope: this});
+    this.ds.on({'exception': famtree.handle_return_exception, scope: this});
     this.bbar = [
 //        {
 //            iconCls: 'add',
@@ -429,12 +429,7 @@ famtree.editUser = function (which, ds, record) {
     if (which == 'new') {
         window.setTitle('Add User');
         status.hide();
-        famtree.DataLoader('actionServlet',
-                {'dowhat': 'Admin', 'action': 'getGroupList', 'shorted': 1},
-                this,
-                handle_newgroupload,
-                famtree.handle_server_exception
-                );
+        famtree.doServerAction({'dowhat': 'Admin', 'action': 'getGroupList', 'shorted': 1}, handle_newgroupload, this, true);
     } else {
         var t_username = record.get('username');
         window.setTitle("Edit User");
@@ -450,12 +445,7 @@ famtree.editUser = function (which, ds, record) {
             status.setValue(true);
         //var tonused = record.get('onused');
         //if (tonused) username.disable();
-        famtree.DataLoader(
-                'actionServlet',
-                {'dowhat': 'Admin', 'action': 'getUser', id: user_id},
-                this,
-                handle_editgroupload, famtree.handle_server_exception
-                );
+        famtree.doServerAction({'dowhat': 'Admin', 'action': 'getUser', id: user_id}, handle_editgroupload, this, true);
     }
 
     if (famtree.global.user.level != famtree.global.macro.ADMIN_LEVEL)

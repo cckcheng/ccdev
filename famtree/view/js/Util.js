@@ -181,6 +181,21 @@ famtree.DataLoaderAlt = function(o) {
 };
 
 famtree.DataLoader = function(url,bp,scope,callback,fail_call, timeout){
+	function handleResponse(response){
+		this.transId = false;
+		var json = response.responseText;
+		try {
+			var o = Ext.util.JSON.decode(json);
+		}catch(e){
+			fail_fn(scope,response);
+			return;
+		}
+		callback(scope,o);
+	}
+
+	function handleFailure(response){
+		alert("Fail:"+response);
+	}
 
 	var fail_fn = handleFailure;
 	if (fail_call) fail_fn = fail_call;
@@ -199,22 +214,6 @@ famtree.DataLoader = function(url,bp,scope,callback,fail_call, timeout){
 		timeout: timeout? timeout: 30000,	// default 30"
 		params: bp
 	});
-
-	function handleResponse(response){
-		this.transId = false;
-		var json = response.responseText;
-		try {
-			var o = Ext.util.JSON.decode(json);
-		}catch(e){
-			fail_fn(scope,response);
-			return;
-		}
-		callback(scope,o);
-	}
-
-	function handleFailure(response){
-		alert("Fail:"+response);
-	}
 };
 
 famtree.ignore = function(s,o){
@@ -253,7 +252,7 @@ famtree.logout = function()
 	return;
 };
 
-famtree.handle_return_exception = function(event, options, response, error)
+famtree.handle_return_exception = function(proxy, type, action, options, response, error)
 {
 	var json = Ext.decode(response.responseText);
 	if(json == undefined) {
@@ -270,62 +269,6 @@ famtree.handle_return_exception = function(event, options, response, error)
 			buttons: Ext.Msg.OK,
 			scope: this,
 			fn: famtree.logout,
-			animEl: 'elId',
-			icon: Ext.MessageBox.QUESTION
-		});
-	}
-};
-
-famtree.handle_server_exception = function(event, options, response, error)
-{
-	var json = Ext.decode(response.responseText);
-	if(json == undefined) {
-		Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
-			+ "<br>" + famtree.getPhrase("Please try again later"));
-		return;
-	}
-	if (json.failcode == -1) {
-		famtree.logout();
-	} else {
-		Ext.Msg.show({
-			title: famtree.getPhrase('Error'),
-			msg: famtree.getPhrase(json.message),
-			buttons: Ext.Msg.OK,
-			scope: this,
-			fn: function() {
-				if(typeof this.win_close == 'function') this.win_close();
-			},
-			animEl: 'elId',
-			icon: Ext.MessageBox.QUESTION
-		});
-	}
-};
-
-/* seems above functions famtree.handle_return_exception and famtree.handle_server_exception don't work in right way.
-   famtree.handle_return_exception, will certernly logout; the this.win_close() in famtree.handle_server_exception need to be
-   created inside the window class.
-*/
-famtree.handle_back_exception = function(event, options, response, error)
-{
-	var json = Ext.decode(response.responseText);
-	if(json == undefined) {
-		Ext.Msg.alert(famtree.getPhrase("Action Failed"), response.statusText + "<br>Status: " + response.status
-			+ "<br>" + famtree.getPhrase("Please try again later"));
-		return;
-	}
-	if (json.failcode == -1) {
-		famtree.logout();
-	} else {
-		Ext.Msg.show({
-			title: famtree.getPhrase('Error'),
-			msg: famtree.getPhrase(json.message),
-			buttons: Ext.Msg.OK,
-			minWidth: 360,
-			scope: this,
-			fn: function() {
-				//if(json.message.search(/Permission deny/i) >= 0) this.win_close();
-				return;
-			},
 			animEl: 'elId',
 			icon: Ext.MessageBox.QUESTION
 		});
@@ -520,7 +463,7 @@ famtree.generalStore = function(url, params, root, autoLoad, remoteSort) {
 	});
 //	if(autoLoad) gStore.load();
 	gStore.on({
-		'loadexception':famtree.handle_return_exception,
+		'exception':famtree.handle_return_exception,
 		scope:this
 	});
 	/*
